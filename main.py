@@ -32,19 +32,27 @@ def db_init():
             phone TEXT,
             password TEXT,
             is_verified INTEGER DEFAULT 0,
-            otp_code TEXT,
-            balance INTEGER DEFAULT 0
+            otp_code TEXT
         )
     ''')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tickets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            number TEXT NOT NULL UNIQUE,
+            number TEXT NOT NULL,
             type TEXT NOT NULL,
             status TEXT NOT NULL,
             owner_id INTEGER NOT NULL,
             tx_ref TEXT UNIQUE NOT NULL,
+            bank_receipt TEXT,
             created_at TEXT NOT NULL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_email TEXT,
+            message TEXT,
+            created_at TEXT
         )
     ''')
     cursor.execute('''
@@ -78,6 +86,11 @@ class BuyTicketModel(BaseModel):
     email: str
     number: str
     ticket_type: str
+    bank_receipt: str
+
+class MessageModel(BaseModel):
+    email: str
+    message: str
 
 @app.get("/")
 def read_index():
@@ -136,10 +149,13 @@ def login(data: UserLogin):
     if user[5] == 0:
         raise HTTPException(status_code=403, detail="እባክዎ መጀመሪያ አካውንትዎን በ OTP ያረጋግጡ!")
     
-    return {"status": "success", "user": {"full_name": user[1], "email": user[2], "balance": user[7]}}
+    return {"status": "success", "user": {"full_name": user[1], "email": user[2]}}
 
 @app.post("/api/tickets/buy")
 def buy_ticket(data: BuyTicketModel):
+    if not data.bank_receipt.strip():
+        raise HTTPException(status_code=400, detail="እባክዎ የክፍያ ማረጋገጫ ቁጥር (Receipt/Transaction ID) ያስገቡ!")
+        
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
     cursor.execute("SELECT id FROM users WHERE email=?", (data.email,))
@@ -149,20 +165,47 @@ def buy_ticket(data: BuyTicketModel):
         raise HTTPException(status_code=404, detail="ተጠቃሚው አልተገኘም")
     
     owner_id = user[0]
+    
+    # Check if number already taken
+    cursor.execute("SELECT id FROM tickets WHERE number=?", (data.number,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="ይህ የዕጣ ቁጥር አስቀድሞ ተይዟል!")
+
     tx_ref = f"KONSO-{random.randint(100000, 999999)}"
     amount = PRICE_FULL if data.ticket_type == "FULL" else PRICE_HALF
 
     try:
         cursor.execute(
-            "INSERT INTO tickets (number, type, status, owner_id, tx_ref, created_at) VALUES (?, ?, 'PENDING', ?, ?, ?)",
-            (data.number, data.ticket_type, owner_id, tx_ref, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            "INSERT INTO tickets (number, type, status, owner_id, tx_ref, bank_receipt, created_at) VALUES (?, ?, 'PENDING', ?, ?, ?, ?)",
+            (data.number, data.ticket_type, owner_id, tx_ref, data.bank_receipt, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         )
         conn.commit()
-    except Exception:
+    except Exception as e:
         conn.close()
-        raise HTTPException(status_code=400, detail="ይህ የዕጣ ቁጥር አስቀድሞ ተይዟል!")
+        raise HTTPException(status_code=400, detail=str(e))
     conn.close()
     return {"status": "success", "tx_ref": tx_ref, "amount": amount}
+
+@app.get("/api/user/tickets")
+def get_user_tickets(email: str):
+    conn = sqlite3.connect(DB_Name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT t.* FROM tickets t JOIN users u ON t.owner_id = u.id WHERE u.email = ? ORDER BY t.id DESC", (email,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/api/message/send")
+def send_message(data: MessageModel):
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO messages (user_email, message, created_at) VALUES (?, ?, ?)", 
+                   (data.email, data.message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "መልዕክትዎ በተሳካ ሁኔታ ተልኳል!"}
 
 @app.get("/api/admin/tickets")
 def admin_get_tickets(secret: str):
@@ -172,6 +215,18 @@ def admin_get_tickets(secret: str):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("SELECT t.*, u.full_name, u.email, u.phone FROM tickets t JOIN users u ON t.owner_id = u.id ORDER BY t.id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.get("/api/admin/messages")
+def admin_get_messages(secret: str):
+    if secret != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    conn = sqlite3.connect(DB_Name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM messages ORDER BY id DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
