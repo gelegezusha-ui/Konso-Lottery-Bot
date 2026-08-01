@@ -2,140 +2,145 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konso Lottery - የኮንሶ ሎተሪ</title>
+    <title>ኮንሶ ሎተሪ - Konso Lottery</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #f1f1f1;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        header {
-            background: linear-gradient(135deg, #d4af37, #aa771c);
-            color: #000;
-            width: 100%;
-            padding: 20px 0;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        h1 { margin: 0; font-size: 24px; }
-        .container {
-            width: 90%;
-            max-width: 450px;
-            background: #1e1e1e;
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid #333;
-        }
-        .section-title {
-            color: #d4af37;
-            font-size: 18px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #444;
-            padding-bottom: 5px;
-        }
-        p, li { font-size: 14px; line-height: 1.6; color: #ccc; }
-        ul { padding-left: 20px; }
-        .btn-tele {
-            display: block;
-            width: 100%;
-            background-color: #0088cc;
-            color: white;
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label { display: block; margin-bottom: 5px; font-size: 13px; color: #d4af37; }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #444;
-            background: #2c2c2c;
-            color: #fff;
-            box-sizing: border-box;
-        }
-        .btn-submit {
-            background: linear-gradient(135deg, #d4af37, #aa771c);
-            color: #000;
-            font-weight: bold;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-        }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+        .box { max-width: 450px; background: white; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #0056b3; }
+        .hidden { display: none; }
+        .alert { background: #e2f0d9; color: #385723; padding: 10px; margin-bottom: 10px; text-align: center; border-radius: 4px; }
     </style>
 </head>
 <body>
+    <div class="box" id="auth-card">
+        <h2>👑 የኮንሶ ሎተሪ መግቢያ</h2>
+        <div id="alert-msg" class="hidden alert"></div>
 
-    <header>
-        <h1>🎫 Konso Lottery (የኮንሶ ሎተሪ)</h1>
-    </header>
+        <div id="login-section">
+            <input type="email" id="l-email" placeholder="ኢሜል አድራሻ">
+            <input type="password" id="l-pass" placeholder="የይለፍ ቃል">
+            <button onclick="loginUser()">ግባ (Login)</button>
+            <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('reg')">አካውንት የለዎትም? ይመዝገቡ</a></p>
+        </div>
 
-    <!-- ስለ አፑ ማብራሪያ እና መመሪያ -->
-    <div class="container">
-        <div class="section-title">📌 ስለ አፑ እና አሰራሩ</div>
-        <p>ይህ ኦፊሴላዊ የኮንሶ ሎተሪ መተግበሪያ ነው። በደህንነት የተጠበቀ ሲሆን ቲኬት ለመግዛት ከታች ያሉትን የባንክ አካውንቶች ይጠቀሙ። ክፍያ ሲፈጽሙ ስክሪንሾት በማያያዝ ቲኬትዎን ይጠይቁ።</p>
-        <ul>
-            <li>1 ቲኬት = 500 ብር</li>
-            <li>ክፍያዎ በአድሚን ከተረጋገጠ በኋላ ቲኬትዎ በሰአቱ ይደርሰዎታል።</li>
-        </ul>
-        <a href="https://t.me/konsolottory" target="_blank" class="btn-tele">💬 ከቴሌግራም ቦት ጋር ይገናኙ</a>
+        <div id="reg-section" class="hidden">
+            <h3>አዲስ አካውንት መፍጠር</h3>
+            <input type="text" id="r-name" placeholder="ሙሉ ስም">
+            <input type="email" id="r-email" placeholder="ኢሜል አድራሻ">
+            <input type="text" id="r-phone" placeholder="ስልክ ቁጥር (09...)">
+            <input type="password" id="r-pass" placeholder="የይለፍ ቃል">
+            <button onclick="registerUser()">ተመዝገብ & OTP ላክ</button>
+            <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('login')">ወደ መግቢያ ተመለስ</a></p>
+        </div>
+
+        <div id="otp-section" class="hidden">
+            <h3>🔒 የደህንነት ማረጋገጫ (OTP)</h3>
+            <p>ወደ ኢሜልዎ የተላከውን 4 አሃዝ ቁጥር ያስገቡ:</p>
+            <input type="text" id="otp-code" placeholder="1234">
+            <button onclick="verifyOTP()">አረጋግጥ (Verify)</button>
+        </div>
     </div>
 
-    <!-- የክፍያ አካውንቶች -->
-    <div class="container">
-        <div class="section-title">💳 የክፍያ አካውንቶች</div>
-        <p>🏦 <b>CBE (ንግድ ባንክ):</b> 1000087841457</p>
-        <p>📱 <b>Telebirr:</b> 0919397995</p>
-        <p>📱 <b>M-Pesa:</b> +251716357344</p>
+    <div class="box hidden" id="dashboard-card">
+        <h2>🎟 ቲኬት መቁረጫ</h2>
+        <p>እንኳን ደህና መጡ፣ <span id="uname" style="font-weight:bold; color:green;"></span></p>
+        <label>የሚፈልጉት የዕጣ ቁጥር (0001 - 1000)</label>
+        <input type="number" id="t-num" min="1" max="1000" placeholder="ምሳሌ: 0045">
+        <label>የትኬት ዓይነት</label>
+        <select id="t-type">
+            <option value="FULL">1 ሙሉ ትኬት (500 ብር)</option>
+            <option value="HALF">1/2 ግማሽ ትኬት (250 ብር)</option>
+        </select>
+        <button onclick="buyTicket()">ቲኬት ቁረጥ & ክፍያ ፈጽም</button>
+        <div id="ticket-res" style="margin-top:15px; font-weight:bold;"></div>
     </div>
 
-    <!-- የቲኬት ግዢ ፎርም -->
-    <div class="container">
-        <div class="section-title">🛍️ ቲኬት መግዣ ፎርም</div>
-        <form action="#" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label>ሙሉ ስም:</label>
-                <input type="text" placeholder="ስምዎን ያስገቡ" required>
-            </div>
-            <div class="form-group">
-                <label>ስልክ ቁጥር:</label>
-                <input type="tel" placeholder="0912345678" required>
-            </div>
-            <div class="form-group">
-                <label>የቲኬት ዓይነት:</label>
-                <select>
-                    <option>1 ሙሉ ቲኬት - 500 ብር</option>
-                    <option>2 ቲኬቶች - 1000 ብር</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>የሚፈልጉት የልደት/ዕድል ቁጥር:</label>
-                <input type="text" placeholder="ምሳሌ: 0045" required>
-            </div>
-            <div class="form-group">
-                <label>የክፍያ ማረጋገጫ (ስክሪንሾት ፋይል):</label>
-                <input type="file" required>
-            </div>
-            <button type="submit" class="btn-submit">ቲኬት ግዛ (ላክ)</button>
-        </form>
-    </div>
+    <script>
+        let currentEmail = "";
 
+        function switchTab(tab) {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('reg-section').classList.add('hidden');
+            if(tab === 'reg') document.getElementById('reg-section').classList.remove('hidden');
+            else document.getElementById('login-section').classList.remove('hidden');
+        }
+
+        function showAlert(msg) {
+            const el = document.getElementById('alert-msg');
+            el.innerText = msg;
+            el.classList.remove('hidden');
+        }
+
+        async function registerUser() {
+            const data = {
+                full_name: document.getElementById('r-name').value,
+                email: document.getElementById('r-email').value,
+                phone: document.getElementById('r-phone').value,
+                password: document.getElementById('r-pass').value
+            };
+            currentEmail = data.email;
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if(res.ok) {
+                showAlert("OTP ተልኳል! (Debug OTP: " + json.debug_otp + ")");
+                document.getElementById('reg-section').classList.add('hidden');
+                document.getElementById('otp-section').classList.remove('hidden');
+            } else { alert(json.detail); }
+        }
+
+        async function verifyOTP() {
+            const otp = document.getElementById('otp-code').value;
+            const res = await fetch('/api/verify-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: currentEmail, otp: otp})
+            });
+            const json = await res.json();
+            if(res.ok) {
+                alert(json.message);
+                switchTab('login');
+                document.getElementById('otp-section').classList.add('hidden');
+            } else { alert(json.detail); }
+        }
+
+        async function loginUser() {
+            const data = {
+                email: document.getElementById('l-email').value,
+                password: document.getElementById('l-pass').value
+            };
+            currentEmail = data.email;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if(res.ok) {
+                document.getElementById('auth-card').classList.add('hidden');
+                document.getElementById('dashboard-card').classList.remove('hidden');
+                document.getElementById('uname').innerText = json.user.full_name;
+            } else { alert(json.detail); }
+        }
+
+        async function buyTicket() {
+            const num = document.getElementById('t-num').value.padStart(4, '0');
+            const type = document.getElementById('t-type').value;
+            const res = await fetch('/api/tickets/buy', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: currentEmail, number: num, ticket_type: type})
+            });
+            const json = await res.json();
+            if(res.ok) {
+                document.getElementById('ticket-res').innerHTML = `✅ ቲኬትዎ ተይዟል!<br>Ref: ${json.tx_ref} | መጠን: ${json.amount} ብር<br>እባክዎ በንግድ ባንክ 1000087841457 ይክፈሉ።`;
+            } else { alert(json.detail); }
+        }
+    </script>
 </body>
 </html>
