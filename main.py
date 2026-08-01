@@ -3,7 +3,7 @@ import random
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 app = FastAPI(title="Konso Lottery Platform")
@@ -19,7 +19,6 @@ app.add_middleware(
 ADMIN_SECRET_KEY = "KonsoLotteryAdmin2026SecureKey!"
 PRICE_FULL = 500
 PRICE_HALF = 250
-
 DB_Name = "konso_lottery.db"
 
 def db_init():
@@ -71,6 +70,14 @@ class BuyTicketModel(BaseModel):
     email: str
     number: str
     ticket_type: str
+
+@app.get("/")
+def read_index():
+    return FileResponse("index.html")
+
+@app.get("/admin")
+def read_admin():
+    return FileResponse("admin.html")
 
 @app.post("/api/register")
 def register(data: UserRegister):
