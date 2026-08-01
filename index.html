@@ -27,8 +27,8 @@
         <div id="alert-msg" class="hidden alert"></div>
 
         <div id="login-section">
-            <input type="email" id="l-email" placeholder="ኢሜል አድራሻ">
-            <input type="password" id="l-pass" placeholder="የይለፍ ቃል">
+            <input type="text" id="l-phone" placeholder="ስልክ ቁጥር (09...)">
+            <input type="password" id="l-pin" maxlength="6" placeholder="ሚስጥር ቁጥር (6 አሃዝ PIN)">
             <button onclick="loginUser()">ግባ (Login)</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('reg')">አካውንት የለዎትም? ይመዝገቡ</a></p>
         </div>
@@ -36,17 +36,17 @@
         <div id="reg-section" class="hidden">
             <h3>አዲስ አካውንት መፍጠር</h3>
             <input type="text" id="r-name" placeholder="ሙሉ ስም">
-            <input type="email" id="r-email" placeholder="ኢሜል አድራሻ">
             <input type="text" id="r-phone" placeholder="ስልክ ቁጥር (09...)">
-            <input type="password" id="r-pass" placeholder="የይለፍ ቃል">
-            <button onclick="registerUser()">ተመዝገብ & OTP አሳይ</button>
+            <input type="email" id="r-email" placeholder="ኢሜል አድራሻ">
+            <input type="password" id="r-pin" maxlength="6" placeholder="ጠንካራ ሚስጥር ቁጥር (እስከ 6 አሃዝ PIN)">
+            <button onclick="registerUser()">ተመዝገብ & OTP በስልክ ላክ</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('login')">ወደ መግቢያ ተመለስ</a></p>
         </div>
 
         <div id="otp-section" class="hidden">
-            <h3>🔒 የደህንነት ማረጋገጫ (OTP)</h3>
-            <p>የተሰጠዎትን 4 አሃዝ የ OTP ቁጥር ያስገቡ:</p>
-            <input type="text" id="otp-code" placeholder="1234">
+            <h3>🔒 የስልክ OTP ማረጋገጫ</h3>
+            <p>ወደ ስልክዎ የተላከውን የ 6 አሃዝ OTP ቁጥር ያስገቡ:</p>
+            <input type="text" id="otp-code" placeholder="123456">
             <button onclick="verifyOTP()">አረጋግጥ (Verify)</button>
         </div>
     </div>
@@ -105,17 +105,28 @@
         <div class="support-box">
             <b>📞 እገዛ እና እርዳታ:</b><br>
             • በስልክ ለመደወል: <a href="tel:0919397995">0919397995</a><br>
-            • ቴሌግራም ግሩፕ: <a href="https://t.me/konso_lottery_group" target="_blank">ይቀላቀሉ</a><br><br>
+            • ቴሌግራም ግሩፕ: <a href="https://t.me/konsolottery" target="_blank">ይቀላቀሉ</a><br><br>
             <b>💬 ለአድሚን ጥያቄ ወይም መልዕክት መላኪያ:</b>
             <textarea id="user-msg" rows="3" placeholder="እዚህ ላይ ጥያቄዎን ወይም አስተያየትዎን ይጻፉ..."></textarea>
             <button onclick="sendMessage()" style="background: #17a2b8; margin-top: 5px;">መልዕክት ላክ</button>
+
+            <h4 style="margin-top:15px;">📥 ከአድሚን የተሰጡ ምላሾች:</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ጥያቄዎ</th>
+                        <th>የአድሚን ምላሽ</th>
+                    </tr>
+                </thead>
+                <tbody id="my-messages-table"></tbody>
+            </table>
         </div>
         
         <button class="logout-btn" onclick="logoutUser()">ውጣ (Logout)</button>
     </div>
 
     <script>
-        let currentEmail = "";
+        let currentPhone = "";
 
         function switchTab(tab) {
             document.getElementById('login-section').classList.add('hidden');
@@ -133,11 +144,11 @@
         async function registerUser() {
             const data = {
                 full_name: document.getElementById('r-name').value,
-                email: document.getElementById('r-email').value,
                 phone: document.getElementById('r-phone').value,
-                password: document.getElementById('r-pass').value
+                email: document.getElementById('r-email').value,
+                pin_code: document.getElementById('r-pin').value
             };
-            currentEmail = data.email;
+            currentPhone = data.phone;
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -145,7 +156,7 @@
             });
             const json = await res.json();
             if(res.ok) {
-                showAlert("ምዝገባ ተሳክቷል! (OTP ቁጥርዎ: " + json.debug_otp + ")");
+                showAlert("ምዝገባ ተሳክቷል! (የተላከው SMS OTP ቁጥር: " + json.sms_otp + ")");
                 document.getElementById('reg-section').classList.add('hidden');
                 document.getElementById('otp-section').classList.remove('hidden');
             } else { alert(json.detail); }
@@ -156,7 +167,7 @@
             const res = await fetch('/api/verify-otp', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: currentEmail, otp: otp})
+                body: JSON.stringify({phone: currentPhone, otp: otp})
             });
             const json = await res.json();
             if(res.ok) {
@@ -168,10 +179,10 @@
 
         async function loginUser() {
             const data = {
-                email: document.getElementById('l-email').value,
-                password: document.getElementById('l-pass').value
+                phone: document.getElementById('l-phone').value,
+                pin_code: document.getElementById('l-pin').value
             };
-            currentEmail = data.email;
+            currentPhone = data.phone;
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -184,6 +195,7 @@
                 document.getElementById('dashboard-card').classList.remove('hidden');
                 document.getElementById('uname').innerText = json.user.full_name;
                 loadMyTickets();
+                loadMyMessages();
             } else { alert(json.detail); }
         }
 
@@ -198,11 +210,10 @@
             const res = await fetch('/api/tickets/buy', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: currentEmail, number: num, ticket_type: type, bank_receipt: receipt})
+                body: JSON.stringify({phone: currentPhone, number: num, ticket_type: type, bank_receipt: receipt})
             });
             const json = await res.json();
             if(res.ok) {
-                document.getElementById('ticket-res.innerHTML').value = "";
                 document.getElementById('ticket-res').style.color = "#d9534f";
                 document.getElementById('ticket-res').innerHTML = `⏳ ቲኬትዎ ተይዟል (PENDING)! Ref: ${json.tx_ref} | አድሚኑ እስኪያረጋግጠው ይጠብቁ።`;
                 document.getElementById('t-num').value = "";
@@ -212,7 +223,7 @@
         }
 
         async function loadMyTickets() {
-            const res = await fetch(`/api/user/tickets?email=${currentEmail}`);
+            const res = await fetch(`/api/user/tickets?phone=${currentPhone}`);
             const tickets = await res.json();
             const tbody = document.getElementById('my-tickets-table');
             tbody.innerHTML = '';
@@ -235,21 +246,37 @@
             const res = await fetch('/api/message/send', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: currentEmail, message: msg})
+                body: JSON.stringify({phone: currentPhone, message: msg})
             });
             if(res.ok) {
                 alert("መልዕክትዎ ለአድሚን ተልኳል!");
                 document.getElementById('user-msg').value = "";
+                loadMyMessages();
             }
         }
 
+        async function loadMyMessages() {
+            const res = await fetch(`/api/user/messages?phone=${currentPhone}`);
+            const msgs = await res.json();
+            const tbody = document.getElementById('my-messages-table');
+            tbody.innerHTML = '';
+            msgs.forEach(m => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${m.message}</td>
+                        <td style="color: blue; font-weight: bold;">${m.admin_reply || 'ገና ምላሽ አልሰጠበትም'}</td>
+                    </tr>
+                `;
+            });
+        }
+
         function logoutUser() {
-            currentEmail = "";
+            currentPhone = "";
             document.getElementById('dashboard-card').classList.add('hidden');
             document.getElementById('auth-card').classList.remove('hidden');
             document.getElementById('rules-card').classList.remove('hidden');
-            document.getElementById('l-email').value = "";
-            document.getElementById('l-pass').value = "";
+            document.getElementById('l-phone').value = "";
+            document.getElementById('l-pin').value = "";
         }
     </script>
 </body>
