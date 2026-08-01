@@ -39,7 +39,7 @@ def db_init():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tickets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            number TEXT NOT NULL,
+            number TEXT NOT NULL UNIQUE,
             type TEXT NOT NULL,
             status TEXT NOT NULL,
             owner_id INTEGER NOT NULL,
@@ -47,16 +47,15 @@ def db_init():
             created_at TEXT NOT NULL
         )
     ''')
-    conn.commit()
-    
-    # የእርስዎን አካውንት አስቀድሞ መመዝገብ (Admin/Owner Account)
-    cursor.execute("SELECT id FROM users WHERE email=?", ("gelegezusha@gmail.com",))
-    if not cursor.fetchone():
-        cursor.execute(
-            "INSERT INTO users (full_name, email, phone, password, is_verified, balance) VALUES (?, ?, ?, ?, 1, 0)",
-            ("Gezu Gele", "gelegezusha@gmail.com", "0900000000", "154213Gezusha")
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS winners (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            ticket_number TEXT,
+            position TEXT,
+            prize INTEGER
         )
-        conn.commit()
+    ''')
+    conn.commit()
     conn.close()
 
 db_init()
@@ -139,6 +138,16 @@ def login(data: UserLogin):
     
     return {"status": "success", "user": {"full_name": user[1], "email": user[2], "balance": user[7]}}
 
+@app.get("/api/tickets/all")
+def get_all_tickets():
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT number, status FROM tickets")
+    rows = cursor.fetchall()
+    conn.close()
+    taken_tickets = {row[0]: row[1] for row in rows}
+    return taken_tickets
+
 @app.post("/api/tickets/buy")
 def buy_ticket(data: BuyTicketModel):
     conn = sqlite3.connect(DB_Name)
@@ -150,7 +159,7 @@ def buy_ticket(data: BuyTicketModel):
         raise HTTPException(status_code=404, detail="ተጠቃሚው አልተገኘም")
     
     owner_id = user[0]
-    tx_ref = f"WEB-{random.randint(100000, 999999)}"
+    tx_ref = f"KONSO-{random.randint(100000, 999999)}"
     amount = PRICE_FULL if data.ticket_type == "FULL" else PRICE_HALF
 
     try:
@@ -187,3 +196,46 @@ def admin_approve(tx_ref: str, secret: str):
     conn.commit()
     conn.close()
     return {"status": "success"}
+
+@app.post("/api/admin/draw")
+def admin_draw(secret: str):
+    if secret != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT number FROM tickets WHERE status='PAID'")
+    paid_tickets = [r[0] for r in cursor.fetchall()]
+    
+    if len(paid_tickets) < 1:
+        conn.close()
+        raise HTTPException(status_code=400, detail="ቂም የተከፈለባቸው ቲኬቶች የሉም!")
+    
+    winners_data = [
+        ("1ኛ አሸናፊ", 400000),
+        ("2ኛ አሸናፊ", 10000),
+        ("3ኛ አሸናፊ", 5000),
+        ("4ኛ አሸናፊ", 2500),
+        ("5ኛ አሸናፊ", 1000),
+        ("6ኛ አሸናፊ", 500)
+    ]
+    
+    cursor.execute("DELETE FROM winners")
+    drawn = random.sample(paid_tickets, min(len(paid_tickets), len(winners_data)))
+    
+    for idx, t_num in enumerate(drawn):
+        pos, prize = winners_data[idx]
+        cursor.execute("INSERT INTO winners (ticket_number, position, prize) VALUES (?, ?, ?)", (t_num, pos, prize))
+    
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "ዕጣው በተሳካ ሁኔታ ወጥቷል!"}
+
+@app.get("/api/winners")
+def get_winners():
+    conn = sqlite3.connect(DB_Name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM winners")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
