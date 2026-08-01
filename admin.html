@@ -5,9 +5,9 @@
     <title>Admin Dashboard</title>
     <style>
         body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 20px; }
-        .panel { max-width: 900px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+        .panel { max-width: 1000px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 14px; }
         th { background: #2c2c2c; }
         input, button { padding: 10px; margin: 5px 0; border-radius: 4px; border: none; }
         button { background: #28a745; color: white; cursor: pointer; }
@@ -26,7 +26,8 @@
         <div id="table-box" style="display:none;">
             <button class="logout-btn" onclick="adminLogout()">ወጣ (Logout)</button>
             <button class="draw-btn" onclick="triggerDraw()">🎲 ዕጣ ማውጣት (Live Draw)</button>
-            <h3>የቲኬቶች እና የደንበኞች ዝርዝር</h3>
+            
+            <h3>🎟 የቲኬቶች እና የክፍያ ማረጋገጫ ዝርዝር</h3>
             <table>
                 <thead>
                     <tr>
@@ -34,11 +35,24 @@
                         <th>ስም & ስልክ</th>
                         <th>ቁጥር</th>
                         <th>ዓይነት</th>
+                        <th>የባንክ receipt</th>
                         <th>ሁኔታ</th>
                         <th>እርምጃ</th>
                     </tr>
                 </thead>
-                <tbody id="tbody"></tbody>
+                <tbody id="tbody-tickets"></tbody>
+            </table>
+
+            <h3 style="margin-top:30px;">💬 ከደንበኞች የተላኩ መልዕክቶች</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ኢሜል</th>
+                        <th>መልዕክት</th>
+                        <th>ቀን</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-msgs"></tbody>
             </table>
         </div>
     </div>
@@ -50,11 +64,13 @@
             currentKey = document.getElementById('secret-key').value;
             const res = await fetch(`/api/admin/tickets?secret=${currentKey}`);
             if(!res.ok) { alert("የተሳሳተ ሚስጥር ቁጥር!"); return; }
-            const data = await res.json();
+            
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('table-box').style.display = 'block';
             
-            const tbody = document.getElementById('tbody');
+            // Load Tickets
+            const data = await res.json();
+            const tbody = document.getElementById('tbody-tickets');
             tbody.innerHTML = '';
             data.forEach(t => {
                 tbody.innerHTML += `
@@ -63,8 +79,24 @@
                         <td>${t.full_name} (${t.phone})</td>
                         <td><b>${t.number}</b></td>
                         <td>${t.type}</td>
+                        <td style="color: #ffc107; font-weight: bold;">${t.bank_receipt || 'የለም'}</td>
                         <td>${t.status}</td>
                         <td>${t.status === 'PENDING' ? `<button onclick="approve('${t.tx_ref}')">አጽድቅ</button>` : 'ጸድቋል'}</td>
+                    </tr>
+                `;
+            });
+
+            // Load Messages
+            const msgRes = await fetch(`/api/admin/messages?secret=${currentKey}`);
+            const msgs = await msgRes.json();
+            const msgTbody = document.getElementById('tbody-msgs');
+            msgTbody.innerHTML = '';
+            msgs.forEach(m => {
+                msgTbody.innerHTML += `
+                    <tr>
+                        <td>${m.user_email}</td>
+                        <td>${m.message}</td>
+                        <td>${m.created_at}</td>
                     </tr>
                 `;
             });
