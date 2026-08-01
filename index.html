@@ -2,240 +2,140 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konso Lottery - የኮንሶ ሎተሪ</title>
     <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            background-color: #0c0b09;
-            color: #f3e5ab;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #f1f1f1;
             margin: 0;
             padding: 0;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
         }
-        .app-container {
+        header {
+            background: linear-gradient(135deg, #d4af37, #aa771c);
+            color: #000;
             width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-            background: #1a1814;
-            padding: 15px;
-            padding-bottom: 40px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-            border-left: 1px solid #332b22;
-            border-right: 1px solid #332b22;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
-        h2 { color: #d4af37; text-align: center; margin-bottom: 15px; font-size: 20px; }
-        .card { 
-            background: #26221c; 
-            padding: 15px; 
-            border-radius: 12px; 
-            margin-bottom: 15px; 
-            border: 1px solid #443b2d;
+        h1 { margin: 0; font-size: 24px; }
+        .container {
+            width: 90%;
+            max-width: 450px;
+            background: #1e1e1e;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid #333;
         }
-        .input-group { margin-bottom: 12px; text-align: left; }
-        .input-group label { display: block; font-size: 14px; margin-bottom: 5px; color: #d4af37; font-weight: 500; }
-        .input-group input, .input-group select { 
-            width: 100%; 
-            padding: 12px; 
-            border-radius: 8px; 
-            border: 1px solid #d4af37; 
-            background: #1a1814; 
-            color: #fff; 
-            font-size: 16px; 
+        .section-title {
+            color: #d4af37;
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
         }
-        .btn { 
-            background: linear-gradient(135deg, #d4af37, #aa8c2c);
-            color: #000; 
-            padding: 14px; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            font-size: 16px; 
-            width: 100%; 
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        p, li { font-size: 14px; line-height: 1.6; color: #ccc; }
+        ul { padding-left: 20px; }
+        .btn-tele {
+            display: block;
+            width: 100%;
+            background-color: #0088cc;
+            color: white;
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 15px;
         }
-        .bank-info { font-size: 14px; line-height: 1.6; text-align: left; }
-        .bank-info p { margin: 6px 0; }
-        .hidden { display: none; }
-        .success-box { background: #1e3a29; border: 1px solid #28a745; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label { display: block; margin-bottom: 5px; font-size: 13px; color: #d4af37; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2c2c2c;
+            color: #fff;
+            box-sizing: border-box;
+        }
+        .btn-submit {
+            background: linear-gradient(135deg, #d4af37, #aa771c);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="app-container" id="user-view">
-        <h2>🎟 የኮንሶ ሎተሪ ቲኬት ግዢ</h2>
+    <header>
+        <h1>🎫 Konso Lottery (የኮንሶ ሎተሪ)</h1>
+    </header>
 
-        <!-- የክፍያ አካውንቶች መረጃ -->
-        <div class="card bank-info">
-            <h3 style="color: #d4af37; margin-top: 0; text-align: center; font-size: 16px;">💳 የክፍያ አካውንቶች</h3>
-            <p>🏦 <b>CBE (ንግድ ባንክ):</b> <span style="color:#fff;">1000087841457</span></p>
-            <p>📱 <b>Telebirr:</b> <span style="color:#fff;">0919397995</span></p>
-            <p>📱 <b>M-Pesa:</b> <span style="color:#fff;">+251716357344</span></p>
-            <p style="font-size: 13px; color: #d4af37; text-align: center; margin-top: 8px;">ባለቤት: ገዛኸኝ ገለቦ | 1 ቲክት = 500 ብር</p>
-        </div>
+    <!-- ስለ አፑ ማብራሪያ እና መመሪያ -->
+    <div class="container">
+        <div class="section-title">📌 ስለ አፑ እና አሰራሩ</div>
+        <p>ይህ ኦፊሴላዊ የኮንሶ ሎተሪ መተግበሪያ ነው። በደህንነት የተጠበቀ ሲሆን ቲኬት ለመግዛት ከታች ያሉትን የባንክ አካውንቶች ይጠቀሙ። ክፍያ ሲፈጽሙ ስክሪንሾት በማያያዝ ቲኬትዎን ይጠይቁ።</p>
+        <ul>
+            <li>1 ቲኬት = 500 ብር</li>
+            <li>ክፍያዎ በአድሚን ከተረጋገጠ በኋላ ቲኬትዎ በሰአቱ ይደርሰዎታል።</li>
+        </ul>
+        <a href="https://t.me/YourTelegramBot" target="_blank" class="btn-tele">💬 ከቴሌግራም ቦት ጋር ይገናኙ</a>
+    </div>
 
-        <!-- የቲኬት መግዣ ፎርም -->
-        <div class="card">
-            <div class="input-group">
+    <!-- የክፍያ አካውንቶች -->
+    <div class="container">
+        <div class="section-title">💳 የክፍያ አካውንቶች</div>
+        <p>🏦 <b>CBE (ንግድ ባንክ):</b> 1000087841457</p>
+        <p>📱 <b>Telebirr:</b> 0919397995</p>
+        <p>📱 <b>M-Pesa:</b> +251716357344</p>
+    </div>
+
+    <!-- የቲኬት ግዢ ፎርም -->
+    <div class="container">
+        <div class="section-title">🛍️ ቲኬት መግዣ ፎርም</div>
+        <form action="#" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
                 <label>ሙሉ ስም:</label>
-                <input type="text" id="fullName" placeholder="ስምዎን ያስገቡ">
+                <input type="text" placeholder="ስምዎን ያስገቡ" required>
             </div>
-
-            <div class="input-group">
-                <label>የስልክ ቁጥር:</label>
-                <input type="tel" id="phoneNumber" placeholder="0912345678">
+            <div class="form-group">
+                <label>ስልክ ቁጥር:</label>
+                <input type="tel" placeholder="0912345678" required>
             </div>
-
-            <div class="input-group">
-                <label>የትኬት ዓይነት:</label>
-                <select id="ticketType">
-                    <option value="500">1 ሙሉ ትኬት - 500 ብር</option>
-                    <option value="250">1/2 ግማሽ ትኬት - 250 ብር</option>
+            <div class="form-group">
+                <label>የቲኬት ዓይነት:</label>
+                <select>
+                    <option>1 ሙሉ ቲኬት - 500 ብር</option>
+                    <option>2 ቲኬቶች - 1000 ብር</option>
                 </select>
             </div>
-
-            <div class="input-group">
-                <label>የሚፈልጉት የዕጣ ቁጥር:</label>
-                <input type="text" id="ticketNumber" placeholder="ምሳሌ: 0045">
+            <div class="form-group">
+                <label>የሚፈልጉት የልደት/ዕድል ቁጥር:</label>
+                <input type="text" placeholder="ምሳሌ: 0045" required>
             </div>
-
-            <div class="input-group">
-                <label>የክፍያ ማረጋገጫ (ስክሪንሾት ፎቶ):</label>
-                <input type="file" id="receiptFile" accept="image/*" style="padding: 8px;">
+            <div class="form-group">
+                <label>የክፍያ ማረጋገጫ (ስክሪንሾት ፋይል):</label>
+                <input type="file" required>
             </div>
-
-            <button class="btn" onclick="submitOrder()">ቲኬት ግዛ (ይላኩ)</button>
-        </div>
-
-        <div id="resultMessage"></div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button style="background:none; border:none; color:#d4af37; text-decoration:underline; cursor:pointer;" onclick="switchToAdmin()">🔐 ወደ አድሚን መቆጣጠሪያ ለመግባት</button>
-        </div>
+            <button type="submit" class="btn-submit">ቲኬት ግዛ (ላክ)</button>
+        </form>
     </div>
 
-    <!-- የአድሚን መቆጣጠሪያ ፓነል (በስልክዎ የሚቆጣጠሩበት) -->
-    <div class="app-container hidden" id="admin-view">
-        <h2 style="color: #ffc107;">👑 አድሚን መቆጣጠሪያ</h2>
-        <p style="font-size: 13px; color: #aaa; text-align: center;">ሰዎች የላኩዋቸው የክፍያ ማረጋገጫዎች እዚህ ይታያሉ።</p>
-        
-        <div id="adminOrdersList">
-            <p style="text-align: center; color: #777; margin-top: 30px;">ምንም አዲስ የክፍያ ጥያቄ የለም።</p>
-        </div>
-
-        <button class="btn" style="background: #444; color: #fff; margin-top: 30px;" onclick="switchToUser()">⬅️ ወደ ዋናው ገጽ ተመለስ</button>
-    </div>
-
-    <script>
-        // ትኬት ሲልኩ የሚከናወን ተግባር
-        function submitOrder() {
-            const name = document.getElementById('fullName').value;
-            const phone = document.getElementById('phoneNumber').value;
-            const type = document.getElementById('ticketType').value;
-            const number = document.getElementById('ticketNumber').value;
-            const fileInput = document.getElementById('receiptFile');
-
-            if (!name || !phone || !number || fileInput.files.length === 0) {
-                alert("እባክዎ ሁሉንም መረጃዎች በትክክል ይሙሉ እና የክፍያ ፎቶ ያያይዙ!");
-                return;
-            }
-
-            // ፋይሉን ወደ 텍ስት (Base64) በመቀየር በስልክ ሎካል ስቶሬጅ (LocalStorage) ማስቀመጥ
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const orderData = {
-                    id: Date.now(),
-                    name: name,
-                    phone: phone,
-                    type: type,
-                    number: number,
-                    image: e.target.result,
-                    status: 'PENDING',
-                    date: new Date().toLocaleString()
-                };
-
-                let orders = JSON.parse(localStorage.getItem('lottery_orders') || '[]');
-                orders.push(orderData);
-                localStorage.setItem('lottery_orders', JSON.stringify(orders));
-
-                document.getElementById('resultMessage').innerHTML = `
-                    <div class="success-box">
-                        <h3 style="color: #28a745; margin:0 0 5px 0;">ተሳክቷል!</h3>
-                        <p style="margin:0; font-size:14px;">የክፍያ ማረጋገጫዎ በትክክል ተልኳል! አድሚኑ ሲያረጋግጠው ይደርስዎታል።</p>
-                    </div>
-                `;
-
-                // ፎርሙን ባዶ ማድረግ
-                document.getElementById('fullName').value = '';
-                document.getElementById('phoneNumber').value = '';
-                document.getElementById('ticketNumber').value = '';
-                document.getElementById('receiptFile').value = '';
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        }
-
-        // ወደ አድሚን ፔጅ መቀየሪያ
-        function switchToAdmin() {
-            document.getElementById('user-view').classList.add('hidden');
-            document.getElementById('admin-view').classList.remove('hidden');
-            loadAdminOrders();
-        }
-
-        function switchToUser() {
-            document.getElementById('admin-view').classList.add('hidden');
-            document.getElementById('user-view').classList.remove('hidden');
-        }
-
-        // አድሚኑ የላኩትን ትኬቶች የሚያይበት እና የሚያጸድቅበት
-        function loadAdminOrders() {
-            const container = document.getElementById('adminOrdersList');
-            let orders = JSON.parse(localStorage.getItem('lottery_orders') || '[]');
-
-            if (orders.length === 0) {
-                container.innerHTML = "<p style='text-align: center; color: #777; margin-top: 30px;'>ምንም አዲስ የክፍያ ጥያቄ የለም።</p>";
-                return;
-            }
-
-            container.innerHTML = "";
-            orders.forEach((order, index) => {
-                container.innerHTML += `
-                    <div class="card" style="border-color: ${order.status === 'APPROVED' ? '#28a745' : '#d4af37'};">
-                        <p><b>ስም:</b> ${order.name}</p>
-                        <p><b>ስልክ:</b> ${order.phone}</p>
-                        <p><b>ቁጥር:</b> ${order.number} (${order.type} ብር)</p>
-                        <p><b>ቀን:</b> ${order.date}</p>
-                        <p><b>ሁኔታ:</b> <span style="color:${order.status === 'APPROVED' ? '#28a745' : '#ffc107'};">${order.status === 'APPROVED' ? 'ጸድቋል ✅' : 'በመጠበቅ ላይ ⏳'}</span></p>
-                        <div style="margin: 10px 0;">
-                            <a href="${order.image}" target="_blank">
-                                <img src="${order.image}" style="width: 100px; height: 120px; object-fit: cover; border-radius: 5px; border: 1px solid #d4af37;">
-                            </a>
-                        </div>
-                        ${order.status === 'PENDING' ? `<button class="btn" style="background:#28a745; color:#fff; padding:8px; font-size:14px;" onclick="approveOrder(${order.id})">✅ ክፍያውን አጽድቅ</button>` : ''}
-                        <button class="btn" style="background:#dc3545; color:#fff; padding:6px; font-size:12px; margin-top:5px;" onclick="deleteOrder(${order.id})">🗑 መዝገቡን ሰርዝ</button>
-                    </div>
-                `;
-            });
-        }
-
-        function approveOrder(id) {
-            let orders = JSON.parse(localStorage.getItem('lottery_orders') || '[]');
-            orders = orders.map(o => {
-                if (o.id === id) o.status = 'APPROVED';
-                return o;
-            });
-            localStorage.setItem('lottery_orders', JSON.stringify(orders));
-            loadAdminOrders();
-        }
-
-        function deleteOrder(id) {
-            let orders = JSON.parse(localStorage.getItem('lottery_orders') || '[]');
-            orders = orders.filter(o => o.id !== id);
-            localStorage.setItem('lottery_orders', JSON.stringify(orders));
-            loadAdminOrders();
-        }
-    </script>
 </body>
 </html>
