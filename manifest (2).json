@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Konso Lottery",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Konso Lottery",
+  "start_url": "/",
+  "theme_color": "#e6bfe9",
+  "description": "የኮንሶ ሎተሪ ቲኬት ግዢ መፈጸሚያ አፕሊኬሽን/Konso Lottery Ticket App",
+  "id": "/"
+}
