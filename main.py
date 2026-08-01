@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher, F
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.types import Message, CallbackQuery, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -36,7 +36,6 @@ async def cmd_start(message: Message, state: FSMContext):
                 cursor.execute("SELECT id FROM users WHERE telegram_id = ?", (ref_id,))
                 if cursor.fetchone():
                     referred_by = ref_id
-                    # Give 25 ETB bonus to referrer
                     cursor.execute("UPDATE users SET balance = balance + 25 WHERE telegram_id = ?", (ref_id,))
                     
         cursor.execute("INSERT INTO users (telegram_id, name, referred_by) VALUES (?, ?, ?)", 
@@ -47,14 +46,13 @@ async def cmd_start(message: Message, state: FSMContext):
         
     conn.close()
     
-    # Send promotional poster if available
     try:
         photo = FSInputFile("file_000000004c8c81f49c6517c715e45acf.png")
         await message.answer_photo(photo, caption="✨ **ፋል አው! ቲክት ግዢ፣ እዳል ወስደው!**\nቁጥሮች ከ 001 እስከ 1000 አሉ።")
     except:
         pass
 
-    if not user[1]: # age_verified == 0
+    if not user[1]:
         await message.answer("⚠️ እባክዎ ዕድሜዎ ከ **18 ዓመት በላይ** መሆኑን ያረጋግጡ:", reply_markup=age_verification_keyboard())
     else:
         is_admin = (user_id == ADMIN_ID)
@@ -114,7 +112,6 @@ async def select_ticket_type(callback: CallbackQuery):
     
     conn = get_db()
     cursor = conn.cursor()
-    # Find available ticket
     cursor.execute("SELECT number FROM tickets WHERE status = 'available' AND round = 5 LIMIT 1")
     ticket = cursor.fetchone()
     
@@ -164,8 +161,6 @@ async def receive_proof(message: Message, state: FSMContext):
     await state.clear()
     await message.answer("⏳ የክፍያ ማረጃዎ ደርሷል! አድሚኑ እስኪያረጋግጠው በpending ላይ ይገኛል።")
     
-    # Notify Admin with inline buttons to approve/reject
-    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
     admin_kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ አጽድቅ (Approve)", callback_data=f"apv_{payment_id}_{ticket_num}"),
          InlineKeyboardButton(text="❌ ውድቅ አድርግ (Reject)", callback_data=f"rej_{payment_id}_{ticket_num}")]
@@ -187,7 +182,6 @@ async def admin_verify_payment(callback: CallbackQuery):
         cursor.execute("UPDATE tickets SET status = 'sold' WHERE number = ?", (ticket_num,))
         conn.commit()
         
-        # Get user_id from payments
         cursor.execute("SELECT user_id FROM payments WHERE id = ?", (pay_id,))
         uid = cursor.fetchone()[0]
         cursor.execute("SELECT telegram_id FROM users WHERE id = ?", (uid,))
@@ -205,11 +199,88 @@ async def admin_verify_payment(callback: CallbackQuery):
         cursor.execute("SELECT telegram_id FROM users WHERE id = ?", (uid,))
         tg_id = cursor.fetchone()[0]
         
-        await bot.send_message(tg_id, f"❌ ይቅርታ፣ የቲኬት ቁጥር **{ticket_num}** ክፍያዎ **ውድቅ ተደርጓል** (Rejected)። እባክዎ በትክክል እንደገና ይሞክሩ።")
+        await bot.send_message(tg_id, f"❌ ይቅርታ፣ የቲኬት ቁጥር **{ticket_num}** ክፍያዎ **ውድቅ ተደርጓል** (Rejected)።")
         await callback.message.edit_caption(caption=f"❌ ክፍያው ውድቅ ተደርጓል (Rejected) - ቲኬት: {ticket_num}")
         
     conn.close()
     await callback.answer()
+
+# ================= ADMIN DASHBOARD BUTTON HANDLERS (FIXED) =================
+
+@dp.callback_query(F.data == "adm_stats")
+async def adm_stats_callback(callback: CallbackQuery):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("ፈቃድ የለዎትም!", show_alert=True)
+        return
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM tickets WHERE status = 'sold'")
+    sold = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM users")
+    total_users = cursor.fetchone()[0]
+    conn.close()
+    
+    await callback.message.answer(f"📊 **ስታቲስቲክስ መረጃ:**\n\n👥 ጠቅላላ ተጠቃሚዎች: {total_users}\n🎟 የተሸጡ ቲኬቶች: {sold} / 1000", parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(F.data == "adm_payments")
+async def adm_payments_callback(callback: CallbackQuery):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("ፈቃድ የለዎትም!", show_alert=True)
+        return
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, user_id, amount, method FROM payments WHERE status = 'pending'")
+    payments = cursor.fetchall()
+    conn.close()
+    
+    if not payments:
+        await callback.message.answer("🟡 በአሁኑ ሰዓት የሚጠብቅ (Pending) ክፍያ የለም።")
+    else:
+        for p in payments:
+            await callback.message.answer(f"💰 የክፍያ መለያ ID: {p[0]}\nዩዘር ID: {p[1]}\nመጠን: {p[2]} ብር\nባንክ: {p[3]}")
+    await callback.answer()
+
+@dp.callback_query(F.data == "adm_draw")
+async def adm_draw_callback(callback: CallbackQuery):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("ፈቃድ የለዎትም!", show_alert=True)
+        return
+    await callback.message.answer("🎲 የዕጣ ማውጫ (Live Draw) ስርዓት ገና 1000 ቲኬት ሲሞላ በራሱ የሚሰራ ይሆናል!")
+    await callback.answer()
+
+@dp.callback_query(F.data == "adm_broadcast")
+async def adm_broadcast_callback(callback: CallbackQuery, state: FSMContext):
+    if callback.from_user.id != ADMIN_ID:
+        await callback.answer("ፈቃድ የለዎትም!", show_alert=True)
+        return
+    await callback.message.answer("📢 ለሁሉም ተጠቃሚዎች መላክ የሚፈልጉትን መልዕክት ይጻፉ:")
+    await state.set_state(Form.waiting_for_broadcast)
+    await callback.answer()
+
+@dp.message(Form.waiting_for_broadcast)
+async def send_broadcast_message(message: Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID:
+        return
+    text = message.text
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT telegram_id FROM users")
+    users = cursor.fetchall()
+    conn.close()
+    
+    count = 0
+    for u in users:
+        try:
+            await bot.send_message(u[0], f"📢 **ማስታወቂያ ከኮንሶ ሎተሪ:**\n\n{text}", parse_mode="Markdown")
+            count += 1
+        except:
+            pass
+            
+    await state.clear()
+    await message.answer(f"✅ ማስታወቂያው ለ {count} ተጠቃሚዎች በተሳካ ሁኔታ ተልኳል!")
+
+# ===========================================================================
 
 @dp.message(F.text.in_(["🎟 የእኔ ቲኬቶች", "🎟 My Tickets"]))
 async def my_tickets(message: Message):
@@ -230,7 +301,7 @@ async def my_tickets(message: Message):
         await message.answer("እስካሁን የገዙት ቲኬት የለም።")
         return
         
-    text = "🎟 **የገዙዋቸው ቲኬቶች (🔴 የተሸጠ/የጸደቀ፣ 🟢 ክፍያ በመጠበቅ ላይ):**\n\n"
+    text = "🎟 **የገዙዋቸው ቲኬቶች (🔴 የተሸጠ/የጸደቀ፣ 🟡 ክፍያ በመጠበቅ ላይ):**\n\n"
     for t in tickets:
         status_icon = "🔴" if t[2] == 'sold' else "🟡"
         text += f"{status_icon} ቲኬት ቁጥር: **{t[0]}** | ዓይነት: {t[1]}\n"
@@ -296,16 +367,6 @@ async def admin_dash(message: Message):
     if message.from_user.id != ADMIN_ID:
         return
     await message.answer("👑 **Admin Dashboard**", reply_markup=admin_keyboard())
-
-@dp.callback_query(F.data == "admin_stats")
-async def adm_stats(callback: CallbackQuery):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM tickets WHERE status = 'sold'")
-    sold = cursor.fetchone()[0]
-    conn.close()
-    await callback.message.answer(f"📊 የተሸጡ ቲኬቶች ብዛት: {sold} / 1000")
-    await callback.answer()
 
 @dp.callback_query(F.data == "back_home")
 async def back_home(callback: CallbackQuery):
