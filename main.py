@@ -28,8 +28,8 @@ def db_init():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name TEXT,
-            email TEXT UNIQUE,
             phone TEXT UNIQUE,
+            email TEXT,
             pin_code TEXT,
             is_verified INTEGER DEFAULT 0,
             otp_code TEXT
@@ -50,7 +50,7 @@ def db_init():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_email TEXT,
+            user_phone TEXT,
             message TEXT,
             admin_reply TEXT DEFAULT '',
             created_at TEXT
@@ -112,10 +112,10 @@ def register(data: UserRegister):
 
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE phone=? OR email=?", (data.phone, data.email))
+    cursor.execute("SELECT id FROM users WHERE phone=?", (data.phone,))
     if cursor.fetchone():
         conn.close()
-        raise HTTPException(status_code=400, detail="ይህ ስልክ ቁጥር ወይም ኢሜል ቀደም ሲል ተመዝግቧል!")
+        raise HTTPException(status_code=400, detail="ይህ ስልክ ቁጥር ቀደም ሲል ተመዝግቧል!")
     
     otp = f"{random.randint(100000, 999999)}"
     try:
@@ -208,7 +208,7 @@ def get_user_tickets(phone: str):
 def send_message(data: MessageModel):
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO messages (user_email, message, created_at) VALUES (?, ?, ?)", 
+    cursor.execute("INSERT INTO messages (user_phone, message, created_at) VALUES (?, ?, ?)", 
                    (data.phone, data.message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     conn.commit()
     conn.close()
@@ -219,7 +219,7 @@ def get_user_messages(phone: str):
     conn = sqlite3.connect(DB_Name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM messages WHERE user_email = ? ORDER BY id DESC", (phone,))
+    cursor.execute("SELECT * FROM messages WHERE user_phone = ? ORDER BY id DESC", (phone,))
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -266,6 +266,17 @@ def admin_approve(tx_ref: str, secret: str):
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
     cursor.execute("UPDATE tickets SET status='PAID' WHERE tx_ref=?", (tx_ref,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+@app.post("/api/admin/reject/{tx_ref}")
+def admin_reject(tx_ref: str, secret: str):
+    if secret != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE tickets SET status='REJECTED' WHERE tx_ref=?", (tx_ref,))
     conn.commit()
     conn.close()
     return {"status": "success"}
