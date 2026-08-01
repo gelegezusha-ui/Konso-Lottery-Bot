@@ -2,20 +2,16 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ኮንሶ ሎተሪ - Konso Lottery</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .box { width: 100%; max-width: 420px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); box-sizing: border-box; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0 15px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
-        button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .box { max-width: 500px; background: white; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background: #0056b3; }
         .hidden { display: none; }
-        .alert { background: #e2f0d9; color: #385723; padding: 10px; margin-bottom: 15px; text-align: center; border-radius: 4px; font-size: 14px; }
-        h2 { text-align: center; color: #333; font-size: 22px; }
-        p { font-size: 14px; color: #555; }
-        a { color: #007bff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        .alert { background: #e2f0d9; color: #385723; padding: 10px; margin-bottom: 10px; text-align: center; border-radius: 4px; }
+        .bank-info { background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -24,8 +20,8 @@
         <div id="alert-msg" class="hidden alert"></div>
 
         <div id="login-section">
-            <input type="email" id="l-email" placeholder="ኢሜል አድራሻ" value="gelegezusha@gmail.com">
-            <input type="password" id="l-pass" placeholder="የይለፍ ቃል" value="154213Gezusha">
+            <input type="email" id="l-email" placeholder="ኢሜል አድራሻ">
+            <input type="password" id="l-pass" placeholder="የይለፍ ቃል">
             <button onclick="loginUser()">ግባ (Login)</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('reg')">አካውንት የለዎትም? ይመዝገቡ</a></p>
         </div>
@@ -36,13 +32,13 @@
             <input type="email" id="r-email" placeholder="ኢሜል አድራሻ">
             <input type="text" id="r-phone" placeholder="ስልክ ቁጥር (09...)">
             <input type="password" id="r-pass" placeholder="የይለፍ ቃል">
-            <button onclick="registerUser()">ተመዝገብ & OTP አሳይ</button>
+            <button onclick="registerUser()">ተመዝገብ & OTP ላክ</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('login')">ወደ መግቢያ ተመለስ</a></p>
         </div>
 
         <div id="otp-section" class="hidden">
             <h3>🔒 የደህንነት ማረጋገጫ (OTP)</h3>
-            <p>በስክሪኑ ላይ የወጣውን የ 4 አሃዝ ቁጥር እዚህ ያስገቡ:</p>
+            <p>ወደ ኢሜልዎ የተላከውን 4 አሃዝ ቁጥር ያስገቡ:</p>
             <input type="text" id="otp-code" placeholder="1234">
             <button onclick="verifyOTP()">አረጋግጥ (Verify)</button>
         </div>
@@ -51,19 +47,30 @@
     <div class="box hidden" id="dashboard-card">
         <h2>🎟 ቲኬት መቁረጫ</h2>
         <p>እንኳን ደህና መጡ፣ <span id="uname" style="font-weight:bold; color:green;"></span></p>
-        <label>የሚፈልጉት የዕጣ ቁጥር (0001 - 1000)</label>
-        <input type="number" id="t-num" min="1" max="1000" placeholder="ምሳሌ: 0045">
+        
+        <label>የሚፈልጉት የዕጣ ቁጥር (001 - 1000)</label>
+        <input type="text" id="t-num" placeholder="ምሳሌ: 045">
+        
         <label>የትኬት ዓይነት</label>
         <select id="t-type">
-            <option value="FULL">1 ሙሉ ትኬት (500 ብር)</option>
-            <option value="HALF">1/2 ግማሽ ትኬት (250 ብር)</option>
+            <option value="FULL">1 ሙሉ ዕጣ (500 ብር)</option>
+            <option value="HALF">1/2 ግማሽ ዕጣ (250 ብር)</option>
         </select>
+        
         <button onclick="buyTicket()">ቲኬት ቁረጥ & ክፍያ ፈጽም</button>
-        <div id="ticket-res" style="margin-top:15px; font-weight:bold; font-size:14px; color:#d9534f;"></div>
+        
+        <div class="bank-info">
+            <b>💳 የክፍያ አካውንቶች:</b><br>
+            • ንግድ ባንክ: <b>1000087841457</b><br>
+            • ቴሌብር: <b>0919397995</b><br>
+            • ኤም-ፔሳ: <b>0716357344</b>
+        </div>
+
+        <div id="ticket-res" style="margin-top:15px; font-weight:bold; color: #d9534f;"></div>
     </div>
 
     <script>
-        let currentEmail = "gelegezusha@gmail.com";
+        let currentEmail = "";
 
         function switchTab(tab) {
             document.getElementById('login-section').classList.add('hidden');
@@ -85,41 +92,33 @@
                 phone: document.getElementById('r-phone').value,
                 password: document.getElementById('r-pass').value
             };
-            if(!data.full_name || !data.email || !data.phone || !data.password) {
-                alert("እባክዎ ሁሉንም መስኮች ይሙሉ።");
-                return;
-            }
             currentEmail = data.email;
-            try {
-                const res = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const json = await res.json();
-                if(res.ok) {
-                    showAlert("ምዝገባ ተሳክቷል! (የእርስዎ OTP ቁጥር: " + json.debug_otp + ")");
-                    document.getElementById('reg-section').classList.add('hidden');
-                    document.getElementById('otp-section').classList.remove('hidden');
-                } else { alert(json.detail); }
-            } catch(e) { alert("የሰርቨር ስህተት አጋጥሟል።"); }
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if(res.ok) {
+                showAlert("OTP ተልኳል! (Debug OTP: " + json.debug_otp + ")");
+                document.getElementById('reg-section').classList.add('hidden');
+                document.getElementById('otp-section').classList.remove('hidden');
+            } else { alert(json.detail); }
         }
 
         async function verifyOTP() {
             const otp = document.getElementById('otp-code').value;
-            try {
-                const res = await fetch('/api/verify-otp', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email: currentEmail, otp: otp})
-                });
-                const json = await res.json();
-                if(res.ok) {
-                    alert(json.message);
-                    switchTab('login');
-                    document.getElementById('otp-section').classList.add('hidden');
-                } else { alert(json.detail); }
-            } catch(e) { alert("የሰርቨር ስህተት አጋጥሟል።"); }
+            const res = await fetch('/api/verify-otp', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: currentEmail, otp: otp})
+            });
+            const json = await res.json();
+            if(res.ok) {
+                alert(json.message);
+                switchTab('login');
+                document.getElementById('otp-section').classList.add('hidden');
+            } else { alert(json.detail); }
         }
 
         async function loginUser() {
@@ -128,37 +127,34 @@
                 password: document.getElementById('l-pass').value
             };
             currentEmail = data.email;
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const json = await res.json();
-                if(res.ok) {
-                    document.getElementById('auth-card').classList.add('hidden');
-                    document.getElementById('dashboard-card').classList.remove('hidden');
-                    document.getElementById('uname').innerText = json.user.full_name;
-                } else { alert(json.detail); }
-            } catch(e) { alert("የሰርቨር ስህተት አጋጥሟል።"); }
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if(res.ok) {
+                document.getElementById('auth-card').classList.add('hidden');
+                document.getElementById('dashboard-card').classList.remove('hidden');
+                document.getElementById('uname').innerText = json.user.full_name;
+            } else { alert(json.detail); }
         }
 
         async function buyTicket() {
-            const numVal = document.getElementById('t-num').value;
-            if(!numVal) { alert("እባክዎ የዕጣ ቁጥር ያስገቡ"); return; }
-            const num = numVal.padStart(4, '0');
+            let num = document.getElementById('t-num').value.trim();
+            if(num.length === 1) num = "00" + num;
+            else if(num.length === 2) num = "0" + num;
+
             const type = document.getElementById('t-type').value;
-            try {
-                const res = await fetch('/api/tickets/buy', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({email: currentEmail, number: num, ticket_type: type})
-                });
-                const json = await res.json();
-                if(res.ok) {
-                    document.getElementById('ticket-res').innerHTML = `✅ ቲኬትዎ ተይዟል!<br>Ref: ${json.tx_ref} | መጠን: ${json.amount} ብር<br>እባክዎ በንግድ ባንክ 1000087841457 ይክፈሉ።`;
-                } else { alert(json.detail); }
-            } catch(e) { alert("የሰርቨር ስህተት አጋጥሟል።"); }
+            const res = await fetch('/api/tickets/buy', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: currentEmail, number: num, ticket_type: type})
+            });
+            const json = await res.json();
+            if(res.ok) {
+                document.getElementById('ticket-res').innerHTML = `✅ ቲኬትዎ ተይዟል!<br>Ref: ${json.tx_ref} | መጠን: ${json.amount} ብር<br>እባክዎ ከላይ በተዘረዘሩት የክፍያ አማራጮች ከፍለው ደረሰኝ ይላኩ።`;
+            } else { alert(json.detail); }
         }
     </script>
 </body>
