@@ -2,34 +2,34 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 15px; box-sizing: border-box; }
-        .panel { max-width: 800px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; box-sizing: border-box; overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 14px; }
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 20px; }
+        .panel { max-width: 900px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
         th { background: #2c2c2c; }
-        input, button { padding: 10px; margin: 5px 0; border-radius: 4px; border: none; font-size: 14px; }
-        input { width: 100%; max-width: 300px; box-sizing: border-box; }
+        input, button { padding: 10px; margin: 5px 0; border-radius: 4px; border: none; }
         button { background: #28a745; color: white; cursor: pointer; }
+        .draw-btn { background: #dc3545; float: right; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <div class="panel">
         <h2>🔒 የአድሚን ሚስጥራዊ መቆጣጠሪያ</h2>
         <div id="login-box">
-            <input type="password" id="secret-key" value="KonsoLotteryAdmin2026SecureKey!" placeholder="የአድሚን ሚስጥር ቁጥር">
-            <br>
+            <input type="password" id="secret-key" placeholder="የአድሚን ሚስጥር ቁጥር">
             <button onclick="loadAdmin()">ግባ</button>
         </div>
+        
         <div id="table-box" style="display:none;">
+            <button class="draw-btn" onclick="triggerDraw()">🎲 ዕጣ ማውጣት (Live Draw)</button>
             <h3>የቲኬቶች እና የደንበኞች ዝርዝር</h3>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>ስም</th>
+                        <th>ስም & ስልክ</th>
                         <th>ቁጥር</th>
                         <th>ዓይነት</th>
                         <th>ሁኔታ</th>
@@ -42,9 +42,11 @@
     </div>
 
     <script>
+        let currentKey = "";
+
         async function loadAdmin() {
-            const key = document.getElementById('secret-key').value;
-            const res = await fetch(`/api/admin/tickets?secret=${key}`);
+            currentKey = document.getElementById('secret-key').value;
+            const res = await fetch(`/api/admin/tickets?secret=${currentKey}`);
             if(!res.ok) { alert("የተሳሳተ ሚስጥር ቁጥር!"); return; }
             const data = await res.json();
             document.getElementById('login-box').style.display = 'none';
@@ -67,9 +69,15 @@
         }
 
         async function approve(tx_ref) {
-            const key = document.getElementById('secret-key').value;
-            const res = await fetch(`/api/admin/approve/${tx_ref}?secret=${key}`, {method: 'POST'});
+            const res = await fetch(`/api/admin/approve/${tx_ref}?secret=${currentKey}`, {method: 'POST'});
             if(res.ok) { alert("ቲኬቱ ጸድቋል!"); loadAdmin(); }
+        }
+
+        async function triggerDraw() {
+            if(!confirm("እርግጠኛ ኖት? ዕጣ ማውጣት ይጀምር?")) return;
+            const res = await fetch(`/api/admin/draw?secret=${currentKey}`, {method: 'POST'});
+            const json = await res.json();
+            if(res.ok) { alert(json.message); } else { alert(json.detail); }
         }
     </script>
 </body>
