@@ -138,16 +138,6 @@ def login(data: UserLogin):
     
     return {"status": "success", "user": {"full_name": user[1], "email": user[2], "balance": user[7]}}
 
-@app.get("/api/tickets/all")
-def get_all_tickets():
-    conn = sqlite3.connect(DB_Name)
-    cursor = conn.cursor()
-    cursor.execute("SELECT number, status FROM tickets")
-    rows = cursor.fetchall()
-    conn.close()
-    taken_tickets = {row[0]: row[1] for row in rows}
-    return taken_tickets
-
 @app.post("/api/tickets/buy")
 def buy_ticket(data: BuyTicketModel):
     conn = sqlite3.connect(DB_Name)
@@ -208,7 +198,7 @@ def admin_draw(secret: str):
     
     if len(paid_tickets) < 1:
         conn.close()
-        raise HTTPException(status_code=400, detail="ቂም የተከፈለባቸው ቲኬቶች የሉም!")
+        raise HTTPException(status_code=400, detail="ክፍያው የጸደቀ ቲኬት የለም!")
     
     winners_data = [
         ("1ኛ አሸናፊ", 400000),
@@ -229,13 +219,3 @@ def admin_draw(secret: str):
     conn.commit()
     conn.close()
     return {"status": "success", "message": "ዕጣው በተሳካ ሁኔታ ወጥቷል!"}
-
-@app.get("/api/winners")
-def get_winners():
-    conn = sqlite3.connect(DB_Name)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM winners")
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
