@@ -29,8 +29,8 @@ def db_init():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             full_name TEXT,
             email TEXT UNIQUE,
-            phone TEXT,
-            password TEXT,
+            phone TEXT UNIQUE,
+            pin_code TEXT,
             is_verified INTEGER DEFAULT 0,
             otp_code TEXT
         )
@@ -52,6 +52,7 @@ def db_init():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_email TEXT,
             message TEXT,
+            admin_reply TEXT DEFAULT '',
             created_at TEXT
         )
     ''')
@@ -70,27 +71,31 @@ db_init()
 
 class UserRegister(BaseModel):
     full_name: str
-    email: str
     phone: str
-    password: str
+    email: str
+    pin_code: str
 
 class VerifyOTP(BaseModel):
-    email: str
+    phone: str
     otp: str
 
-class UserLogin(BaseModel):
-    email: str
-    password: str
+class UserLogin(BaseModel, extra="allow"):
+    phone: str
+    pin_code: str
 
 class BuyTicketModel(BaseModel):
-    email: str
+    phone: str
     number: str
     ticket_type: str
     bank_receipt: str
 
 class MessageModel(BaseModel):
-    email: str
+    phone: str
     message: str
+
+class AdminReplyModel(BaseModel):
+    msg_id: int
+    reply: str
 
 @app.get("/")
 def read_index():
@@ -102,54 +107,57 @@ def read_admin():
 
 @app.post("/api/register")
 def register(data: UserRegister):
+    if len(data.pin_code) != 6 or not data.pin_code.isdigit():
+        raise HTTPException(status_code=400, detail="ሚስጥር ቁጥሩ (PIN) ጥንካሬውን የጠበቀ እና በትክክል 6 አሃዝ መሆን አለበት!")
+
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE email=?", (data.email,))
+    cursor.execute("SELECT id FROM users WHERE phone=? OR email=?", (data.phone, data.email))
     if cursor.fetchone():
         conn.close()
-        raise HTTPException(status_code=400, detail="ይህ ኢሜል ቀደም ሲል ተመዝግቧል!")
+        raise HTTPException(status_code=400, detail="ይህ ስልክ ቁጥር ወይም ኢሜል ቀደም ሲል ተመዝግቧል!")
     
-    otp = f"{random.randint(1000, 9999)}"
+    otp = f"{random.randint(100000, 999999)}"
     try:
         cursor.execute(
-            "INSERT INTO users (full_name, email, phone, password, otp_code, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
-            (data.full_name, data.email, data.phone, data.password, otp)
+            "INSERT INTO users (full_name, phone, email, pin_code, otp_code, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
+            (data.full_name, data.phone, data.email, data.pin_code, otp)
         )
         conn.commit()
     except Exception as e:
         conn.close()
         raise HTTPException(status_code=500, detail=str(e))
     conn.close()
-    return {"status": "success", "message": "ምዝገባ ተሳክቷል", "debug_otp": otp}
+    return {"status": "success", "message": "የ OTP ቁጥር ወደ ስልክዎ ተልኳል", "sms_otp": otp}
 
 @app.post("/api/verify-otp")
 def verify_otp(data: VerifyOTP):
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email=? AND otp_code=?", (data.email, data.otp))
+    cursor.execute("SELECT * FROM users WHERE phone=? AND otp_code=?", (data.phone, data.otp))
     user = cursor.fetchone()
     if not user:
         conn.close()
         raise HTTPException(status_code=400, detail="የተሳሳተ የ OTP ቁጥር!")
     
-    cursor.execute("UPDATE users SET is_verified=1, otp_code=NULL WHERE email=?", (data.email,))
+    cursor.execute("UPDATE users SET is_verified=1, otp_code=NULL WHERE phone=?", (data.phone,))
     conn.commit()
     conn.close()
-    return {"status": "success", "message": "አካውንትዎ ጸድቋል!"}
+    return {"status": "success", "message": "አካውንትዎ በስልክ ቁጥርዎ ጸድቋል!"}
 
 @app.post("/api/login")
 def login(data: UserLogin):
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email=? AND password=?", (data.email, data.password))
+    cursor.execute("SELECT * FROM users WHERE phone=? AND pin_code=?", (data.phone, data.pin_code))
     user = cursor.fetchone()
     conn.close()
     if not user:
-        raise HTTPException(status_code=400, detail="የተሳሳተ ኢሜል ወይም የይለፍ ቃል!")
+        raise HTTPException(status_code=400, detail="የተሳሳተ ስልክ ቁጥር ወይም ሚስጥር ቁጥር (PIN)!")
     if user[5] == 0:
         raise HTTPException(status_code=403, detail="እባክዎ መጀመሪያ አካውንትዎን በ OTP ያረጋግጡ!")
     
-    return {"status": "success", "user": {"full_name": user[1], "email": user[2]}}
+    return {"status": "success", "user": {"full_name": user[1], "phone": user[2], "email": user[3]}}
 
 @app.post("/api/tickets/buy")
 def buy_ticket(data: BuyTicketModel):
@@ -158,7 +166,7 @@ def buy_ticket(data: BuyTicketModel):
         
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
-    cursor.execute("SELECT id FROM users WHERE email=?", (data.email,))
+    cursor.execute("SELECT id FROM users WHERE phone=?", (data.phone,))
     user = cursor.fetchone()
     if not user:
         conn.close()
@@ -166,7 +174,6 @@ def buy_ticket(data: BuyTicketModel):
     
     owner_id = user[0]
     
-    # Check if number already taken
     cursor.execute("SELECT id FROM tickets WHERE number=?", (data.number,))
     if cursor.fetchone():
         conn.close()
@@ -188,11 +195,11 @@ def buy_ticket(data: BuyTicketModel):
     return {"status": "success", "tx_ref": tx_ref, "amount": amount}
 
 @app.get("/api/user/tickets")
-def get_user_tickets(email: str):
+def get_user_tickets(phone: str):
     conn = sqlite3.connect(DB_Name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT t.* FROM tickets t JOIN users u ON t.owner_id = u.id WHERE u.email = ? ORDER BY t.id DESC", (email,))
+    cursor.execute("SELECT t.* FROM tickets t JOIN users u ON t.owner_id = u.id WHERE u.phone = ? ORDER BY t.id DESC", (phone,))
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -202,10 +209,20 @@ def send_message(data: MessageModel):
     conn = sqlite3.connect(DB_Name)
     cursor = conn.cursor()
     cursor.execute("INSERT INTO messages (user_email, message, created_at) VALUES (?, ?, ?)", 
-                   (data.email, data.message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                   (data.phone, data.message, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     conn.commit()
     conn.close()
     return {"status": "success", "message": "መልዕክትዎ በተሳካ ሁኔታ ተልኳል!"}
+
+@app.get("/api/user/messages")
+def get_user_messages(phone: str):
+    conn = sqlite3.connect(DB_Name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM messages WHERE user_email = ? ORDER BY id DESC", (phone,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
 
 @app.get("/api/admin/tickets")
 def admin_get_tickets(secret: str):
@@ -214,7 +231,7 @@ def admin_get_tickets(secret: str):
     conn = sqlite3.connect(DB_Name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("SELECT t.*, u.full_name, u.email, u.phone FROM tickets t JOIN users u ON t.owner_id = u.id ORDER BY t.id DESC")
+    cursor.execute("SELECT t.*, u.full_name, u.phone, u.email FROM tickets t JOIN users u ON t.owner_id = u.id ORDER BY t.id DESC")
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -230,6 +247,17 @@ def admin_get_messages(secret: str):
     rows = cursor.fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+@app.post("/api/admin/reply")
+def admin_reply(data: AdminReplyModel, secret: str):
+    if secret != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE messages SET admin_reply=? WHERE id=?", (data.reply, data.msg_id))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
 
 @app.post("/api/admin/approve/{tx_ref}")
 def admin_approve(tx_ref: str, secret: str):
