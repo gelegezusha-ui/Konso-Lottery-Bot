@@ -1,9 +1,10 @@
 import sqlite3
 
 def init_db():
-    conn = sqlite3.connect("lottery.db")
+    conn = sqlite3.connect("konso_lottery.db")
     cursor = conn.cursor()
-
+    
+    # Users table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -13,18 +14,20 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-
+    
+    # Tickets table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tickets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             number TEXT,
             type TEXT,
             owner_id INTEGER,
-            status TEXT DEFAULT 'pending',
+            status TEXT DEFAULT 'available',
             round INTEGER DEFAULT 1
         )
     """)
-
+    
+    # Payments table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS payments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,19 +38,16 @@ def init_db():
             status TEXT DEFAULT 'pending'
         )
     """)
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS winners (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            ticket_number TEXT,
-            position INTEGER,
-            prize REAL
-        )
-    """)
-
+    
+    # Initialize 1000 tickets if not exist
+    cursor.execute("SELECT COUNT(*) FROM tickets WHERE round = 1")
+    if cursor.fetchone()[0] == 0:
+        for i in range(1, 1001):
+            num_str = f"{i:03d}"
+            cursor.execute("INSERT INTO tickets (number, type, status, round) VALUES (?, 'full', 'available', 1)", (num_str,))
+            
     conn.commit()
     conn.close()
 
-if __name__ == "__main__":
-    init_db()
+def get_db():
+    return sqlite3.connect("konso_lottery.db")
