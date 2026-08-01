@@ -1,8 +1,3 @@
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID", 0))
-CHAPA_SECRET = os.getenv("CHAPA_SECRET")
+BOT_TOKEN = "7757596668:AAEJhqQfMLTqNGSCaIITKlhuedOXiSu2ZhM"
+ADMIN_ID = 1362677376
+CHAPA_SECRET = "CHASECK_TEST-EQUEgEqXxSF34Ggbd5gaxSMtJVuYNeRn"
