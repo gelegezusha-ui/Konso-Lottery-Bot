@@ -5,16 +5,20 @@
     <title>ኮንሶ ሎተሪ - Konso Lottery</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .box { max-width: 600px; background: white; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .box { max-width: 650px; background: white; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input, select, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background: #0056b3; }
         .logout-btn { background: #dc3545; margin-top: 15px; }
         .logout-btn:hover { background: #c82333; }
         .hidden { display: none; }
         .alert { background: #e2f0d9; color: #385723; padding: 10px; margin-bottom: 10px; text-align: center; border-radius: 4px; }
-        .bank-info, .rules-box { background: #fff3cd; padding: 15px; border-radius: 5px; margin-top: 15px; font-size: 14px; line-height: 1.6; }
+        .bank-info, .rules-box, .support-box { background: #fff3cd; padding: 15px; border-radius: 5px; margin-top: 15px; font-size: 14px; line-height: 1.6; }
         .rules-box { background: #e8f4fd; }
+        .support-box { background: #d1ecf1; color: #0c5460; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
+        th { background: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -47,48 +51,65 @@
         </div>
     </div>
 
-    <!-- የደንቦች እና መመሪያዎች ማሳያ ሳጥን (በመግቢያ ገጽ ላይ የሚታይ) -->
     <div class="box" id="rules-card">
         <h3>ℹ️ የኮንሶ ሎተሪ ደንቦች እና ሽልማቶች</h3>
         <div class="rules-box">
             <b>🎫 የቲኬት አሰራር:</b><br>
-            • ቁጥሮች ከ <b>001 እስከ 1000</b> ናቸው። 1000 ቁጥሮች ሲሞሉ ዕጣ ይወጣል።<br>
-            • <b>ሙሉ ዕጣ (500 ብር):</b> አሸናፊ ሲሆኑ ሙሉ ሽልማቱን ይወስዳሉ።<br>
-            • <b>ግማሽ ዕጣ (250 ብር):</b> አሸናፊ ሲሆኑ ከሽልማቱ 50% ይቀበላሉ።<br><br>
-            
-            <b>🏆 የሽልማት ደረጃዎች:</b><br>
-            • 1ኛ አሸናፊ: <b>400,000 ብር</b><br>
-            • 2ኛ አሸናፊ: <b>10,000 ብር</b><br>
-            • 3ኛ አሸናፊ: <b>5,000 ብር</b><br>
-            • 4ኛ አሸናፊ: <b>2,500 ብር</b><br>
-            • 5ኛ አሸናፊ: <b>1,000 ብር</b><br>
-            • 6ኛ አሸናፊ: <b>500 ብር</b>
+            • ቁጥሮች ከ <b>001 እስከ 1000</b> ናቸው። ብዙ ቲኬቶችን መግዛት ይቻላል።<br>
+            • <b>ሙሉ ዕጣ (500 ብር):</b> ሙሉ ሽልማት። | <b>ግማሽ ዕጣ (250 ብር):</b> 50% ሽልማት።<br><br>
+            <b>🏆 የሽልማት ደረጃዎች:</b> 1ኛ: 400,000 ብር | 2ኛ: 10,000 ብር | 3ኛ: 5,000 ብር | 4ኛ: 2,500 ብር | 5ኛ: 1,000 ብር | 6ኛ: 500 ብር
         </div>
     </div>
 
     <div class="box hidden" id="dashboard-card">
-        <h2>🎟 ቲኬት መቁረጫ</h2>
+        <h2>🎟 ቲኬት መቁረጫ & ዳሽቦርድ</h2>
         <p>እንኳን ደህና መጡ፣ <span id="uname" style="font-weight:bold; color:green;"></span></p>
         
         <label>የሚፈልጉት የዕጣ ቁጥር (001 - 1000)</label>
-        <input type="text" id="t-num" placeholder="ምሳሌ: 045">
+        <input type="text" id="t-num" placeholder="ምሳሌ: 045 (ብዙ ቁጥር መያዝ ይችላሉ)">
         
         <label>የትኬት ዓይነት</label>
         <select id="t-type">
             <option value="FULL">1 ሙሉ ዕጣ (500 ብር)</option>
             <option value="HALF">1/2 ግማሽ ዕጣ (250 ብር)</option>
         </select>
+
+        <label>የባንክ/ቴሌብር የክፍያ ማረጋገጫ ቁጥር (Transaction ID)</label>
+        <input type="text" id="t-receipt" placeholder="ምሳሌ: FT2412345678">
         
-        <button onclick="buyTicket()">ቲኬት ቁረጥ & ክፍያ ፈጽም</button>
+        <button onclick="buyTicket()">ቲኬት ቁረጥ & ክፍያ ላክ</button>
         
         <div class="bank-info">
             <b>💳 የክፍያ አካውንቶች:</b><br>
-            • ንግድ ባንክ (CBE): <b>1000087841457</b><br>
-            • ቴሌብር (Telebirr): <b>0919397995</b><br>
-            • ኤም-ፔሳ (M-Pesa): <b>0716357344</b>
+            • ንግድ ባንክ: <b>1000087841457</b><br>
+            • ቴሌብር: <b>0919397995</b><br>
+            • ኤም-ፔሳ: <b>0716357344</b>
         </div>
 
-        <div id="ticket-res" style="margin-top:15px; font-weight:bold; color: #d9534f;"></div>
+        <div id="ticket-res" style="margin-top:15px; font-weight:bold;"></div>
+
+        <h3 style="margin-top:20px;">📋 የቆረጧቸው ቲኬቶች ዝርዝር</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ቁጥር</th>
+                    <th>ዓይነት</th>
+                    <th>ማረጋገጫ (Ref)</th>
+                    <th>ሁኔታ (Status)</th>
+                </tr>
+            </thead>
+            <tbody id="my-tickets-table"></tbody>
+        </table>
+
+        <!-- እገዛ እና መልዕክት መላኪያ ሳጥን -->
+        <div class="support-box">
+            <b>📞 እገዛ እና እርዳታ:</b><br>
+            • በስልክ ለመደወል: <a href="tel:0919397995">0919397995</a><br>
+            • ቴሌግራም ግሩፕ: <a href="https://t.me/konso_lottery_group" target="_blank">ይቀላቀሉ</a><br><br>
+            <b>💬 ለአድሚን ጥያቄ ወይም መልዕክት መላኪያ:</b>
+            <textarea id="user-msg" rows="3" placeholder="እዚህ ላይ ጥያቄዎን ወይም አስተያየትዎን ይጻፉ..."></textarea>
+            <button onclick="sendMessage()" style="background: #17a2b8; margin-top: 5px;">መልዕክት ላክ</button>
+        </div>
         
         <button class="logout-btn" onclick="logoutUser()">ውጣ (Logout)</button>
     </div>
@@ -159,9 +180,10 @@
             const json = await res.json();
             if(res.ok) {
                 document.getElementById('auth-card').classList.add('hidden');
-                document.getElementById('rules-card').classList.add('hidden'); // ሲገቡ ደንቦቹን መደበቅ ከተፈለገ
+                document.getElementById('rules-card').classList.add('hidden');
                 document.getElementById('dashboard-card').classList.remove('hidden');
                 document.getElementById('uname').innerText = json.user.full_name;
+                loadMyTickets();
             } else { alert(json.detail); }
         }
 
@@ -171,15 +193,54 @@
             else if(num.length === 2) num = "0" + num;
 
             const type = document.getElementById('t-type').value;
+            const receipt = document.getElementById('t-receipt').value;
+
             const res = await fetch('/api/tickets/buy', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: currentEmail, number: num, ticket_type: type})
+                body: JSON.stringify({email: currentEmail, number: num, ticket_type: type, bank_receipt: receipt})
             });
             const json = await res.json();
             if(res.ok) {
-                document.getElementById('ticket-res').innerHTML = `✅ ቲኬትዎ ተይዟል!<br>Ref: ${json.tx_ref} | መጠን: ${json.amount} ብር<br>እባክዎ ከላይ በተዘረዘሩት የክፍያ አማራጮች ከፍለው ደረሰኝ ያድርሱ።`;
+                document.getElementById('ticket-res.innerHTML').value = "";
+                document.getElementById('ticket-res').style.color = "#d9534f";
+                document.getElementById('ticket-res').innerHTML = `⏳ ቲኬትዎ ተይዟል (PENDING)! Ref: ${json.tx_ref} | አድሚኑ እስኪያረጋግጠው ይጠብቁ።`;
+                document.getElementById('t-num').value = "";
+                document.getElementById('t-receipt').value = "";
+                loadMyTickets();
             } else { alert(json.detail); }
+        }
+
+        async function loadMyTickets() {
+            const res = await fetch(`/api/user/tickets?email=${currentEmail}`);
+            const tickets = await res.json();
+            const tbody = document.getElementById('my-tickets-table');
+            tbody.innerHTML = '';
+            tickets.forEach(t => {
+                let statusBadge = t.status === 'PENDING' ? '<span style="color:orange; font-weight:bold;">PENDING (በምርመራ ላይ)</span>' : '<span style="color:green; font-weight:bold;">🎉 ጸድቋል! እንኳን ደስ አለዎት!</span>';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${t.number}</b></td>
+                        <td>${t.type}</td>
+                        <td>${t.tx_ref}</td>
+                        <td>${statusBadge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function sendMessage() {
+            const msg = document.getElementById('user-msg').value;
+            if(!msg.trim()) { alert("እባክዎ መልዕክት ይጻፉ!"); return; }
+            const res = await fetch('/api/message/send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: currentEmail, message: msg})
+            });
+            if(res.ok) {
+                alert("መልዕክትዎ ለአድሚን ተልኳል!");
+                document.getElementById('user-msg').value = "";
+            }
         }
 
         function logoutUser() {
