@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 20px; }
+        .panel { max-width: 800px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+        th { background: #2c2c2c; }
+        input, button { padding: 10px; margin: 5px 0; border-radius: 4px; border: none; }
+        button { background: #28a745; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h2>🔒 የአድሚን ሚስጥራዊ መቆጣጠሪያ</h2>
+        <div id="login-box">
+            <input type="password" id="secret-key" placeholder="የአድሚን ሚስጥር ቁጥር">
+            <button onclick="loadAdmin()">ግባ</button>
+        </div>
+        <div id="table-box" style="display:none;">
+            <h3>የቲኬቶች እና የደንበኞች ዝርዝር</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ስም</th>
+                        <th>ቁጥር</th>
+                        <th>ዓይነት</th>
+                        <th>ሁኔታ</th>
+                        <th>እርምጃ</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadAdmin() {
+            const key = document.getElementById('secret-key').value;
+            const res = await fetch(`/api/admin/tickets?secret=${key}`);
+            if(!res.ok) { alert("የተሳሳተ ሚስጥር ቁጥር!"); return; }
+            const data = await res.json();
+            document.getElementById('login-box').style.display = 'none';
+            document.getElementById('table-box').style.display = 'block';
+            
+            const tbody = document.getElementById('tbody');
+            tbody.innerHTML = '';
+            data.forEach(t => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${t.id}</td>
+                        <td>${t.full_name} (${t.phone})</td>
+                        <td><b>${t.number}</b></td>
+                        <td>${t.type}</td>
+                        <td>${t.status}</td>
+                        <td>${t.status === 'PENDING' ? `<button onclick="approve('${t.tx_ref}')">አጽድቅ</button>` : 'ጸድቋል'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function approve(tx_ref) {
+            const key = document.getElementById('secret-key').value;
+            const res = await fetch(`/api/admin/approve/${tx_ref}?secret=${key}`, {method: 'POST'});
+            if(res.ok) { alert("ቲኬቱ ጸድቋል!"); loadAdmin(); }
+        }
+    </script>
+</body>
+</html>
