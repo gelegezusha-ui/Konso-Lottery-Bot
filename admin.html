@@ -2,14 +2,16 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 20px; }
-        .panel { max-width: 800px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; padding: 15px; box-sizing: border-box; }
+        .panel { max-width: 800px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 8px; box-sizing: border-box; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; min-width: 600px; }
+        th, td { border: 1px solid #333; padding: 10px; text-align: left; font-size: 14px; }
         th { background: #2c2c2c; }
-        input, button { padding: 10px; margin: 5px 0; border-radius: 4px; border: none; }
+        input, button { padding: 10px; margin: 5px 0; border-radius: 4px; border: none; font-size: 14px; }
+        input { width: 100%; max-width: 300px; box-sizing: border-box; }
         button { background: #28a745; color: white; cursor: pointer; }
     </style>
 </head>
@@ -17,7 +19,8 @@
     <div class="panel">
         <h2>🔒 የአድሚን ሚስጥራዊ መቆጣጠሪያ</h2>
         <div id="login-box">
-            <input type="password" id="secret-key" placeholder="የአድሚን ሚስጥር ቁጥር">
+            <input type="password" id="secret-key" value="KonsoLotteryAdmin2026SecureKey!" placeholder="የአድሚን ሚስጥር ቁጥር">
+            <br>
             <button onclick="loadAdmin()">ግባ</button>
         </div>
         <div id="table-box" style="display:none;">
