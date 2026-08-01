@@ -1,68 +1,173 @@
-import os
-import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+import sqlite3
+import random
+from datetime import datetime
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-# ከሬፖዚቶሪው ውስጥ ቶከንን ማንበብ
-TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
-bot = telebot.TeleBot(TOKEN)
+app = FastAPI(title="Konso Lottery Platform")
 
-# የእርስዎ የአድሚን ቴሌግራም ቻት ID
-ADMIN_CHAT_ID = "1362677376"
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    markup = InlineKeyboardMarkup()
-    web_app_btn = InlineKeyboardButton("🎫 የኮንሶ ሎተሪ አፕ ይክፈቱ", url="https://gelegezusha-ui.github.io/Konso-Lottery-Bot/")
-    markup.add(web_app_btn)
-    
-    bot.reply_to(message, 
-                 "ሰላም! እንኳን ወደ **የኮንሶ ሎተሪ ቦት** በደህና መጡ።\n\nቲኬት ለመግዛት እና ዕድልዎን ለመሞከር ከታች ያለውን ሊንክ ይጫኑ!", 
-                 reply_markup=markup, parse_mode="Markdown")
+ADMIN_SECRET_KEY = "KonsoLotteryAdmin2026SecureKey!"
+PRICE_FULL = 500
+PRICE_HALF = 250
 
-# ተጠቃሚው የክፍያ ስክሪንሾት ሲልክ (ስም እና ስልክ ቁጥርን ጨምሮ)
-@bot.message_handler(content_types=['photo'])
-def handle_payment_screenshot(message):
-    user_id = message.from_user.id
-    user_name = message.from_user.first_name
+DB_Name = "konso_lottery.db"
+
+def db_init():
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT,
+            email TEXT UNIQUE,
+            phone TEXT,
+            password TEXT,
+            is_verified INTEGER DEFAULT 0,
+            otp_code TEXT,
+            balance INTEGER DEFAULT 0
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            number TEXT NOT NULL,
+            type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            owner_id INTEGER NOT NULL,
+            tx_ref TEXT UNIQUE NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+db_init()
+
+class UserRegister(BaseModel):
+    full_name: str
+    email: str
+    phone: str
+    password: str
+
+class VerifyOTP(BaseModel):
+    email: str
+    otp: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+class BuyTicketModel(BaseModel):
+    email: str
+    number: str
+    ticket_type: str
+
+@app.post("/api/register")
+def register(data: UserRegister):
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE email=?", (data.email,))
+    if cursor.fetchone():
+        conn.close()
+        raise HTTPException(status_code=400, detail="ይህ ኢሜል ቀደም ሲል ተመዝግቧል!")
     
-    # የላከውን መግለጫ (Caption) ማንበብ (በአፑ በኩል የተጻፈው ስም እና ስልክ እዚህ ይመጣል)
-    user_caption = message.caption if message.caption else "መረጃ አልተጻፈም"
-    
-    # ማሳወቂያውን ለራስዎ (ለአድሚን) መላክ
-    caption_text = (f"🔔 **አዲስ የክፍያ እና የቲኬት ጥያቄ መጥቷል!**\n\n"
-                    f"👤 የቴሌግራም ስም: {user_name}\n"
-                    f"🆔 ዩዘር ID: {user_id}\n\n"
-                    f"📋 **የተጠቃሚው መረጃ እና የትዕዛዝ ዝርዝር:**\n{user_caption}\n\n"
-                    f"እባክዎን ክፍያውን በባንክ/በቴሌብር አረጋግጠው ከታች ያሉትን ቁልፎች ይጫኑ።")
-    
-    # ለአድሚን ማጽደቂያ አዝራሮች (Approve / Reject)
-    admin_markup = InlineKeyboardMarkup()
-    approve_btn = InlineKeyboardButton("✅ አጽድቅ (ቲኬት ስጥ)", callback_data=f"approve_{user_id}")
-    reject_btn = InlineKeyboardButton("❌ አጣጥል", callback_data=f"reject_{user_id}")
-    admin_markup.add(approve_btn, reject_btn)
-    
+    otp = f"{random.randint(1000, 9999)}"
     try:
-        bot.send_photo(chat_id=ADMIN_CHAT_ID, photo=message.photo[-1].file_id, caption=caption_text, reply_markup=admin_markup, parse_mode="Markdown")
-        bot.reply_to(message, "✅ የክፍያ ማረጋገጫዎ እና መረጃዎ ደርሷል! አድሚኑ ሲያረጋግጠው መልእክት ይደርሶዎታል።")
+        cursor.execute(
+            "INSERT INTO users (full_name, email, phone, password, otp_code, is_verified) VALUES (?, ?, ?, ?, ?, 0)",
+            (data.full_name, data.email, data.phone, data.password, otp)
+        )
+        conn.commit()
     except Exception as e:
-        bot.reply_to(message, "⚠️ ስህተት አጋጥሟል። እባክዎ እንደገና ይሞክሩ።")
+        conn.close()
+        raise HTTPException(status_code=500, detail=str(e))
+    conn.close()
+    return {"status": "success", "message": "ምዝገባ ተሳክቷል", "debug_otp": otp}
 
-# አድሚኑ ቁልፍ ሲጫን የሚሰጥ ምላሽ
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    data = call.data
-    if data.startswith("approve_"):
-        target_user_id = data.split("_")[1]
-        bot.send_message(chat_id=target_user_id, text="🎉 እንኳን ደስ አለዎት! ክፍያዎ እና ቲኬትዎ በአድሚን ጸድቋል። መልካም ዕድል!")
-        bot.answer_callback_query(call.id, "ቲኬቱ ጸድቆ ለተጠቃሚው ተልኳል!")
-        bot.edit_message_caption(caption=call.message.caption + "\n\n🟢 **[ተረጋግጧል - ጸድቋል]**", reply_markup=None, chat_id=call.message.chat.id, message_id=call.message.message_id)
-        
-    elif data.startswith("reject_"):
-        target_user_id = data.split("_")[1]
-        bot.send_message(chat_id=target_user_id, text="❌ ይቅርታ፣ የላኩት የክፍያ ማረጋገጫ ወይም መረጃ ትክክለኛ አይደለም። እባክዎ አድሚኑን ያግኙ።")
-        bot.answer_callback_query(call.id, "ጥያቄው ውድቅ ተደርጓል!")
-        bot.edit_message_caption(caption=call.message.caption + "\n\n🔴 **[ውድቅ ተደርጓል]**", reply_markup=None, chat_id=call.message.chat.id, message_id=call.message.message_id)
+@app.post("/api/verify-otp")
+def verify_otp(data: VerifyOTP):
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email=? AND otp_code=?", (data.email, data.otp))
+    user = cursor.fetchone()
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=400, detail="የተሳሳተ የ OTP ቁጥር!")
+    
+    cursor.execute("UPDATE users SET is_verified=1, otp_code=NULL WHERE email=?", (data.email,))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "አካውንትዎ ጸድቋል!"}
 
-if __name__ == "__main__":
-    print("Bot is running...")
-    bot.infinity_polling()
+@app.post("/api/login")
+def login(data: UserLogin):
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE email=? AND password=?", (data.email, data.password))
+    user = cursor.fetchone()
+    conn.close()
+    if not user:
+        raise HTTPException(status_code=400, detail="የተሳሳተ ኢሜል ወይም የይለፍ ቃል!")
+    if user[5] == 0:
+        raise HTTPException(status_code=403, detail="እባክዎ መጀመሪያ አካውንትዎን በ OTP ያረጋግጡ!")
+    
+    return {"status": "success", "user": {"full_name": user[1], "email": user[2], "balance": user[7]}}
+
+@app.post("/api/tickets/buy")
+def buy_ticket(data: BuyTicketModel):
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE email=?", (data.email,))
+    user = cursor.fetchone()
+    if not user:
+        conn.close()
+        raise HTTPException(status_code=404, detail="ተጠቃሚው አልተገኘም")
+    
+    owner_id = user[0]
+    tx_ref = f"WEB-{random.randint(100000, 999999)}"
+    amount = PRICE_FULL if data.ticket_type == "FULL" else PRICE_HALF
+
+    try:
+        cursor.execute(
+            "INSERT INTO tickets (number, type, status, owner_id, tx_ref, created_at) VALUES (?, ?, 'PENDING', ?, ?, ?)",
+            (data.number, data.ticket_type, owner_id, tx_ref, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        )
+        conn.commit()
+    except Exception:
+        conn.close()
+        raise HTTPException(status_code=400, detail="ይህ የዕጣ ቁጥር አስቀድሞ ተይዟል!")
+    conn.close()
+    return {"status": "success", "tx_ref": tx_ref, "amount": amount}
+
+@app.get("/api/admin/tickets")
+def admin_get_tickets(secret: str):
+    if secret != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    conn = sqlite3.connect(DB_Name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT t.*, u.full_name, u.email, u.phone FROM tickets t JOIN users u ON t.owner_id = u.id ORDER BY t.id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/api/admin/approve/{tx_ref}")
+def admin_approve(tx_ref: str, secret: str):
+    if secret != ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    conn = sqlite3.connect(DB_Name)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE tickets SET status='PAID' WHERE tx_ref=?", (tx_ref,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
