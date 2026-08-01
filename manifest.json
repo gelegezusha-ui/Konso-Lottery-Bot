@@ -1,0 +1,13 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "konso Lottery",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "konso Lottery",
+  "start_url": "/",
+  "theme_color": "#9dd9e7",
+  "id": "/",
+  "description": "Konso Lottery App"
+}
