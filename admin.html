@@ -73,6 +73,14 @@
             const tbody = document.getElementById('tbody-tickets');
             tbody.innerHTML = '';
             data.forEach(t => {
+                let actionBtn = '';
+                if(t.status === 'PENDING') {
+                    actionBtn = `<button onclick="approve('${t.tx_ref}')" style="background:#28a745;">አጽድቅ</button> 
+                                 <button onclick="rejectTicket('${t.tx_ref}')" style="background:#dc3545;">ውድቅ አድርግ</button>`;
+                } else {
+                    actionBtn = `<b>${t.status}</b>`;
+                }
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${t.id}</td>
@@ -81,7 +89,7 @@
                         <td>${t.type}</td>
                         <td style="color: #ffc107; font-weight: bold;">${t.bank_receipt || 'የለም'}</td>
                         <td>${t.status}</td>
-                        <td>${t.status === 'PENDING' ? `<button onclick="approve('${t.tx_ref}')">አጽድቅ</button>` : 'ጸድቋል'}</td>
+                        <td>${actionBtn}</td>
                     </tr>
                 `;
             });
@@ -93,7 +101,7 @@
             msgs.forEach(m => {
                 msgTbody.innerHTML += `
                     <tr>
-                        <td>${m.user_email}</td>
+                        <td>${m.user_phone}</td>
                         <td>${m.message}</td>
                         <td style="color: yellow;">${m.admin_reply || 'ገና አልተመለሰም'}</td>
                         <td>
@@ -108,6 +116,12 @@
         async function approve(tx_ref) {
             const res = await fetch(`/api/admin/approve/${tx_ref}?secret=${currentKey}`, {method: 'POST'});
             if(res.ok) { alert("ቲኬቱ ጸድቋል!"); loadAdmin(); }
+        }
+
+        async function rejectTicket(tx_ref) {
+            if(!confirm("ይህንን ክፍያ ውድቅ ለማድረግ እርግጠኛ ኖት?")) return;
+            const res = await fetch(`/api/admin/reject/${tx_ref}?secret=${currentKey}`, {method: 'POST'});
+            if(res.ok) { alert("ቲኬቱ ውድቅ ተደርጓል!"); loadAdmin(); }
         }
 
         async function sendReply(msgId) {
