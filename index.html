@@ -5,13 +5,16 @@
     <title>ኮንሶ ሎተሪ - Konso Lottery</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
-        .box { max-width: 500px; background: white; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .box { max-width: 600px; background: white; padding: 25px; margin: auto; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         button { background: #007bff; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; }
         button:hover { background: #0056b3; }
+        .logout-btn { background: #dc3545; margin-top: 15px; }
+        .logout-btn:hover { background: #c82333; }
         .hidden { display: none; }
         .alert { background: #e2f0d9; color: #385723; padding: 10px; margin-bottom: 10px; text-align: center; border-radius: 4px; }
-        .bank-info { background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 14px; }
+        .bank-info, .rules-box { background: #fff3cd; padding: 15px; border-radius: 5px; margin-top: 15px; font-size: 14px; line-height: 1.6; }
+        .rules-box { background: #e8f4fd; }
     </style>
 </head>
 <body>
@@ -32,15 +35,34 @@
             <input type="email" id="r-email" placeholder="ኢሜል አድራሻ">
             <input type="text" id="r-phone" placeholder="ስልክ ቁጥር (09...)">
             <input type="password" id="r-pass" placeholder="የይለፍ ቃል">
-            <button onclick="registerUser()">ተመዝገብ & OTP ላክ</button>
+            <button onclick="registerUser()">ተመዝገብ & OTP አሳይ</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('login')">ወደ መግቢያ ተመለስ</a></p>
         </div>
 
         <div id="otp-section" class="hidden">
             <h3>🔒 የደህንነት ማረጋገጫ (OTP)</h3>
-            <p>ወደ ኢሜልዎ የተላከውን 4 አሃዝ ቁጥር ያስገቡ:</p>
+            <p>የተሰጠዎትን 4 አሃዝ የ OTP ቁጥር ያስገቡ:</p>
             <input type="text" id="otp-code" placeholder="1234">
             <button onclick="verifyOTP()">አረጋግጥ (Verify)</button>
+        </div>
+    </div>
+
+    <!-- የደንቦች እና መመሪያዎች ማሳያ ሳጥን (በመግቢያ ገጽ ላይ የሚታይ) -->
+    <div class="box" id="rules-card">
+        <h3>ℹ️ የኮንሶ ሎተሪ ደንቦች እና ሽልማቶች</h3>
+        <div class="rules-box">
+            <b>🎫 የቲኬት አሰራር:</b><br>
+            • ቁጥሮች ከ <b>001 እስከ 1000</b> ናቸው። 1000 ቁጥሮች ሲሞሉ ዕጣ ይወጣል።<br>
+            • <b>ሙሉ ዕጣ (500 ብር):</b> አሸናፊ ሲሆኑ ሙሉ ሽልማቱን ይወስዳሉ።<br>
+            • <b>ግማሽ ዕጣ (250 ብር):</b> አሸናፊ ሲሆኑ ከሽልማቱ 50% ይቀበላሉ።<br><br>
+            
+            <b>🏆 የሽልማት ደረጃዎች:</b><br>
+            • 1ኛ አሸናፊ: <b>400,000 ብር</b><br>
+            • 2ኛ አሸናፊ: <b>10,000 ብር</b><br>
+            • 3ኛ አሸናፊ: <b>5,000 ብር</b><br>
+            • 4ኛ አሸናፊ: <b>2,500 ብር</b><br>
+            • 5ኛ አሸናፊ: <b>1,000 ብር</b><br>
+            • 6ኛ አሸናፊ: <b>500 ብር</b>
         </div>
     </div>
 
@@ -61,12 +83,14 @@
         
         <div class="bank-info">
             <b>💳 የክፍያ አካውንቶች:</b><br>
-            • ንግድ ባንክ: <b>1000087841457</b><br>
-            • ቴሌብር: <b>0919397995</b><br>
-            • ኤም-ፔሳ: <b>0716357344</b>
+            • ንግድ ባንክ (CBE): <b>1000087841457</b><br>
+            • ቴሌብር (Telebirr): <b>0919397995</b><br>
+            • ኤም-ፔሳ (M-Pesa): <b>0716357344</b>
         </div>
 
         <div id="ticket-res" style="margin-top:15px; font-weight:bold; color: #d9534f;"></div>
+        
+        <button class="logout-btn" onclick="logoutUser()">ውጣ (Logout)</button>
     </div>
 
     <script>
@@ -100,7 +124,7 @@
             });
             const json = await res.json();
             if(res.ok) {
-                showAlert("OTP ተልኳል! (Debug OTP: " + json.debug_otp + ")");
+                showAlert("ምዝገባ ተሳክቷል! (OTP ቁጥርዎ: " + json.debug_otp + ")");
                 document.getElementById('reg-section').classList.add('hidden');
                 document.getElementById('otp-section').classList.remove('hidden');
             } else { alert(json.detail); }
@@ -135,6 +159,7 @@
             const json = await res.json();
             if(res.ok) {
                 document.getElementById('auth-card').classList.add('hidden');
+                document.getElementById('rules-card').classList.add('hidden'); // ሲገቡ ደንቦቹን መደበቅ ከተፈለገ
                 document.getElementById('dashboard-card').classList.remove('hidden');
                 document.getElementById('uname').innerText = json.user.full_name;
             } else { alert(json.detail); }
@@ -153,8 +178,17 @@
             });
             const json = await res.json();
             if(res.ok) {
-                document.getElementById('ticket-res').innerHTML = `✅ ቲኬትዎ ተይዟል!<br>Ref: ${json.tx_ref} | መጠን: ${json.amount} ብር<br>እባክዎ ከላይ በተዘረዘሩት የክፍያ አማራጮች ከፍለው ደረሰኝ ይላኩ።`;
+                document.getElementById('ticket-res').innerHTML = `✅ ቲኬትዎ ተይዟል!<br>Ref: ${json.tx_ref} | መጠን: ${json.amount} ብር<br>እባክዎ ከላይ በተዘረዘሩት የክፍያ አማራጮች ከፍለው ደረሰኝ ያድርሱ።`;
             } else { alert(json.detail); }
+        }
+
+        function logoutUser() {
+            currentEmail = "";
+            document.getElementById('dashboard-card').classList.add('hidden');
+            document.getElementById('auth-card').classList.remove('hidden');
+            document.getElementById('rules-card').classList.remove('hidden');
+            document.getElementById('l-email').value = "";
+            document.getElementById('l-pass').value = "";
         }
     </script>
 </body>
