@@ -43,13 +43,14 @@
                 <tbody id="tbody-tickets"></tbody>
             </table>
 
-            <h3 style="margin-top:30px;">💬 ከደንበኞች የተላኩ መልዕክቶች</h3>
+            <h3 style="margin-top:30px;">💬 ከደንበኞች የተላኩ መልዕክቶች እና ምላሽ መስጫ</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>ኢሜል</th>
+                        <th>ስልክ (ተጠቃሚ)</th>
                         <th>መልዕክት</th>
-                        <th>ቀን</th>
+                        <th>አሁን ያለው ምላሽ</th>
+                        <th>አዲስ ምላሽ ላክ</th>
                     </tr>
                 </thead>
                 <tbody id="tbody-msgs"></tbody>
@@ -68,7 +69,6 @@
             document.getElementById('login-box').style.display = 'none';
             document.getElementById('table-box').style.display = 'block';
             
-            // Load Tickets
             const data = await res.json();
             const tbody = document.getElementById('tbody-tickets');
             tbody.innerHTML = '';
@@ -86,7 +86,6 @@
                 `;
             });
 
-            // Load Messages
             const msgRes = await fetch(`/api/admin/messages?secret=${currentKey}`);
             const msgs = await msgRes.json();
             const msgTbody = document.getElementById('tbody-msgs');
@@ -96,7 +95,11 @@
                     <tr>
                         <td>${m.user_email}</td>
                         <td>${m.message}</td>
-                        <td>${m.created_at}</td>
+                        <td style="color: yellow;">${m.admin_reply || 'ገና አልተመለሰም'}</td>
+                        <td>
+                            <input type="text" id="reply-${m.id}" placeholder="ምላሽ ጻፍ..." value="${m.admin_reply || ''}">
+                            <button onclick="sendReply(${m.id})" style="background:#17a2b8;">ላክ</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -105,6 +108,19 @@
         async function approve(tx_ref) {
             const res = await fetch(`/api/admin/approve/${tx_ref}?secret=${currentKey}`, {method: 'POST'});
             if(res.ok) { alert("ቲኬቱ ጸድቋል!"); loadAdmin(); }
+        }
+
+        async function sendReply(msgId) {
+            const replyText = document.getElementById(`reply-${msgId}`).value;
+            const res = await fetch(`/api/admin/reply?secret=${currentKey}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({msg_id: msgId, reply: replyText})
+            });
+            if(res.ok) {
+                alert("ምላሹ ተልኳል!");
+                loadAdmin();
+            }
         }
 
         async function triggerDraw() {
