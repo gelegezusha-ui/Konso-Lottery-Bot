@@ -48,6 +48,15 @@ def db_init():
         )
     ''')
     conn.commit()
+    
+    # የእርስዎን አካውንት አስቀድሞ መመዝገብ (Admin/Owner Account)
+    cursor.execute("SELECT id FROM users WHERE email=?", ("gelegezusha@gmail.com",))
+    if not cursor.fetchone():
+        cursor.execute(
+            "INSERT INTO users (full_name, email, phone, password, is_verified, balance) VALUES (?, ?, ?, ?, 1, 0)",
+            ("Gezu Gele", "gelegezusha@gmail.com", "0900000000", "154213Gezusha")
+        )
+        conn.commit()
     conn.close()
 
 db_init()
