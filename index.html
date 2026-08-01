@@ -38,7 +38,7 @@
             <input type="text" id="r-name" placeholder="ሙሉ ስም">
             <input type="text" id="r-phone" placeholder="ስልክ ቁጥር (09...)">
             <input type="email" id="r-email" placeholder="ኢሜል አድራሻ">
-            <input type="password" id="r-pin" maxlength="6" placeholder="ጠንካራ ሚስጥር ቁጥር (እስከ 6 አሃዝ PIN)">
+            <input type="password" id="r-pin" maxlength="6" placeholder="ጠንካራ ሚስጥር ቁጥር (6 አሃዝ PIN)">
             <button onclick="registerUser()">ተመዝገብ & OTP በስልክ ላክ</button>
             <p style="text-align:center; margin-top:15px;"><a href="#" onclick="switchTab('login')">ወደ መግቢያ ተመለስ</a></p>
         </div>
@@ -228,7 +228,14 @@
             const tbody = document.getElementById('my-tickets-table');
             tbody.innerHTML = '';
             tickets.forEach(t => {
-                let statusBadge = t.status === 'PENDING' ? '<span style="color:orange; font-weight:bold;">PENDING (በምርመራ ላይ)</span>' : '<span style="color:green; font-weight:bold;">🎉 ጸድቋል! እንኳን ደስ አለዎት!</span>';
+                let statusBadge = '';
+                if(t.status === 'PENDING') {
+                    statusBadge = '<span style="color:orange; font-weight:bold;">PENDING (በምርመራ ላይ)</span>';
+                } else if(t.status === 'PAID') {
+                    statusBadge = '<span style="color:green; font-weight:bold;">🎉 ጸድቋል! እንኳን ደስ አለዎት!</span>';
+                } else if(t.status === 'REJECTED') {
+                    statusBadge = '<span style="color:red; font-weight:bold;">❌ ውድቅ ሆኗል (ክፍያውን ያረጋግጡ)</span>';
+                }
                 tbody.innerHTML += `
                     <tr>
                         <td><b>${t.number}</b></td>
